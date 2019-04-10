@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Tw 3lve View-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="Tw3lveView" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QYw-lZ-2rw">
+                                <rect key="frame" x="113" y="193" width="149" height="64"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="43"/>
+                                <state key="normal" title="r/jelbrek"/>
+                                <connections>
+                                    <action selector="jelbrekClik:" destination="BYZ-38-t0r" eventType="touchUpInside" id="kpN-UZ-vkh"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MEU-rv-rjZ">
+                                <rect key="frame" x="66" y="265" width="242" height="51"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
+                                <state key="normal" title="r/jelbrek (v_swap)"/>
+                                <connections>
+                                    <action selector="jelbrekA12Clik:" destination="BYZ-38-t0r" eventType="touchUpInside" id="NNa-mf-xGs"/>
+                                </connections>
+                            </button>
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="Hi" translatesAutoresizingMaskIntoConstraints="NO" id="mtF-bi-FFd">
+                                <rect key="frame" x="66" y="373" width="240" height="128"/>
+                                <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.84661091550000001" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                            </textView>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="MEU-rv-rjZ" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="4Pt-gr-zQx"/>
+                            <constraint firstItem="MEU-rv-rjZ" firstAttribute="top" secondItem="QYw-lZ-2rw" secondAttribute="bottom" constant="8" symbolic="YES" id="5Ec-Ou-JNp"/>
+                            <constraint firstItem="QYw-lZ-2rw" firstAttribute="centerX" secondItem="MEU-rv-rjZ" secondAttribute="centerX" id="EgP-KO-Nqj"/>
+                            <constraint firstItem="mtF-bi-FFd" firstAttribute="top" secondItem="MEU-rv-rjZ" secondAttribute="bottom" constant="57" id="Jdf-Kh-YZs"/>
+                            <constraint firstItem="MEU-rv-rjZ" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="66" id="Jym-af-KFU"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="mtF-bi-FFd" secondAttribute="trailing" constant="69" id="MMg-8B-dih"/>
+                            <constraint firstItem="QYw-lZ-2rw" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="173" id="dig-TO-2PW"/>
+                            <constraint firstItem="MEU-rv-rjZ" firstAttribute="leading" secondItem="mtF-bi-FFd" secondAttribute="leading" id="u5k-mm-di8"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="mtF-bi-FFd" secondAttribute="bottom" constant="166" id="zON-NN-eoh"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                    </view>
+                    <connections>
+                        <outlet property="leButton" destination="QYw-lZ-2rw" id="UaL-5q-wvT"/>
+                        <outlet property="uiLog" destination="mtF-bi-FFd" id="D4O-xx-SrU"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="133.59999999999999" y="133.5832083958021"/>
+        </scene>
+    </scenes>
+</document>
