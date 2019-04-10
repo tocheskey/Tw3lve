@@ -16,6 +16,122 @@
 #include "common.h"
 #include "lzssdec.h"
 #include <sys/utsname.h>
+#include "PFOffs.h"
+#include "remap_tfp_set_hsp.h"
+#include "libsnappy.h"
+#include "OffsetHolder.h"
+#include "vnode_utils.h"
+#include <sys/mount.h>
+#include "KernelMemory.h"
+#include <sys/snapshot.h>
+#include <sys/stat.h>
+#include "reboot.h"
+
+extern char **environ;
+NSData *lastSystemOutput=nil;
+int execCmdV(const char *cmd, int argc, const char * const* argv, void (^unrestrict)(pid_t)) {
+    pid_t pid;
+    posix_spawn_file_actions_t *actions = NULL;
+    posix_spawn_file_actions_t actionsStruct;
+    int out_pipe[2];
+    bool valid_pipe = false;
+    posix_spawnattr_t *attr = NULL;
+    posix_spawnattr_t attrStruct;
+    
+    NSMutableString *cmdstr = [NSMutableString stringWithCString:cmd encoding:NSUTF8StringEncoding];
+    for (int i=1; i<argc; i++) {
+        [cmdstr appendFormat:@" \"%s\"", argv[i]];
+    }
+    
+    valid_pipe = pipe(out_pipe) == ERR_SUCCESS;
+    if (valid_pipe && posix_spawn_file_actions_init(&actionsStruct) == ERR_SUCCESS) {
+        actions = &actionsStruct;
+        posix_spawn_file_actions_adddup2(actions, out_pipe[1], 1);
+        posix_spawn_file_actions_adddup2(actions, out_pipe[1], 2);
+        posix_spawn_file_actions_addclose(actions, out_pipe[0]);
+        posix_spawn_file_actions_addclose(actions, out_pipe[1]);
+    }
+    
+    if (unrestrict && posix_spawnattr_init(&attrStruct) == ERR_SUCCESS) {
+        attr = &attrStruct;
+        posix_spawnattr_setflags(attr, POSIX_SPAWN_START_SUSPENDED);
+    }
+    
+    int rv = posix_spawn(&pid, cmd, actions, attr, (char *const *)argv, environ);
+    LOGME("%s(%d) command: %@", __FUNCTION__, pid, cmdstr);
+    
+    if (unrestrict) {
+        unrestrict(pid);
+        kill(pid, SIGCONT);
+    }
+    
+    if (valid_pipe) {
+        close(out_pipe[1]);
+    }
+    
+    if (rv == ERR_SUCCESS) {
+        if (valid_pipe) {
+            NSMutableData *outData = [NSMutableData new];
+            char c;
+            char s[2] = {0, 0};
+            NSMutableString *line = [NSMutableString new];
+            while (read(out_pipe[0], &c, 1) == 1) {
+                [outData appendBytes:&c length:1];
+                if (c == '\n') {
+                    LOGME("%s(%d): %@", __FUNCTION__, pid, line);
+                    [line setString:@""];
+                } else {
+                    s[0] = c;
+                    [line appendString:@(s)];
+                }
+            }
+            if ([line length] > 0) {
+                LOGME("%s(%d): %@", __FUNCTION__, pid, line);
+            }
+            lastSystemOutput = [outData copy];
+        }
+        if (waitpid(pid, &rv, 0) == -1) {
+            LOGME("ERROR: Waitpid failed");
+        } else {
+            LOGME("%s(%d) completed with exit status %d", __FUNCTION__, pid, WEXITSTATUS(rv));
+        }
+        
+    } else {
+        LOGME("%s(%d): ERROR posix_spawn failed (%d): %s", __FUNCTION__, pid, rv, strerror(rv));
+        rv <<= 8; // Put error into WEXITSTATUS
+    }
+    if (valid_pipe) {
+        close(out_pipe[0]);
+    }
+    return rv;
+}
+
+int execCmd(const char *cmd, ...) {
+    va_list ap, ap2;
+    int argc = 1;
+    
+    va_start(ap, cmd);
+    va_copy(ap2, ap);
+    
+    while (va_arg(ap, const char *) != NULL) {
+        argc++;
+    }
+    va_end(ap);
+    
+    const char *argv[argc+1];
+    argv[0] = cmd;
+    for (int i=1; i<argc; i++) {
+        argv[i] = va_arg(ap2, const char *);
+    }
+    va_end(ap2);
+    argv[argc] = NULL;
+    
+    int rv = execCmdV(cmd, argc, argv, NULL);
+    return WEXITSTATUS(rv);
+}
+
+
+
 
 void setGID(gid_t gid, uint64_t proc) {
     if (getgid() == gid) return;
@@ -122,3 +238,288 @@ void initPF64() {
     LOGME("Successfully initialized patchfinder64.");
 }
 
+
+
+bool is_mountpoint(const char *filename) {
+    struct stat buf;
+    if (lstat(filename, &buf) != ERR_SUCCESS) {
+        return false;
+    }
+    
+    if (!S_ISDIR(buf.st_mode))
+        return false;
+    
+    char *cwd = getcwd(NULL, 0);
+    int rv = chdir(filename);
+    assert(rv == ERR_SUCCESS);
+    struct stat p_buf;
+    rv = lstat("..", &p_buf);
+    assert(rv == ERR_SUCCESS);
+    if (cwd) {
+        chdir(cwd);
+        free(cwd);
+    }
+    return buf.st_dev != p_buf.st_dev || buf.st_ino == p_buf.st_ino;
+}
+
+bool ensure_directory(const char *directory, int owner, mode_t mode) {
+    NSString *path = @(directory);
+    NSFileManager *fm = [NSFileManager defaultManager];
+    id attributes = [fm attributesOfItemAtPath:path error:nil];
+    if (attributes &&
+        [attributes[NSFileType] isEqual:NSFileTypeDirectory] &&
+        [attributes[NSFileOwnerAccountID] isEqual:@(owner)] &&
+        [attributes[NSFileGroupOwnerAccountID] isEqual:@(owner)] &&
+        [attributes[NSFilePosixPermissions] isEqual:@(mode)]
+        ) {
+        // Directory exists and matches arguments
+        return true;
+    }
+    if (attributes) {
+        if ([attributes[NSFileType] isEqual:NSFileTypeDirectory]) {
+            // Item exists and is a directory
+            return [fm setAttributes:@{
+                                       NSFileOwnerAccountID: @(owner),
+                                       NSFileGroupOwnerAccountID: @(owner),
+                                       NSFilePosixPermissions: @(mode)
+                                       } ofItemAtPath:path error:nil];
+        } else if (![fm removeItemAtPath:path error:nil]) {
+            // Item exists and is not a directory but could not be removed
+            return false;
+        }
+    }
+    // Item does not exist at this point
+    return [fm createDirectoryAtPath:path withIntermediateDirectories:YES attributes:@{
+                                                                                       NSFileOwnerAccountID: @(owner),
+                                                                                       NSFileGroupOwnerAccountID: @(owner),
+                                                                                       NSFilePosixPermissions: @(mode)
+                                                                                       } error:nil];
+}
+
+uint64_t give_creds_to_process_at_addr(uint64_t proc, uint64_t cred_addr)
+{
+    uint64_t orig_creds = ReadKernel64(proc + koffset(KSTRUCT_OFFSET_PROC_UCRED));
+    LOGME("orig_creds = " ADDR, orig_creds);
+    if (!ISADDR(orig_creds)) {
+        LOGME("failed to get orig_creds!");
+        return 0;
+    }
+    WriteKernel64(proc + koffset(KSTRUCT_OFFSET_PROC_UCRED), cred_addr);
+    return orig_creds;
+}
+
+
+void getOffsets() {
+    #define GO(x) do { \
+    SETOFFSET(x, find_symbol("_" #x)); \
+    if (!ISADDR(GETOFFSET(x))) SETOFFSET(x, find_ ##x()); \
+    LOGME(#x " = " ADDR " + " ADDR, GETOFFSET(x), kernel_slide); \
+    _assert(ISADDR(GETOFFSET(x)), @"Failed to find " #x " offset.", true); \
+    SETOFFSET(x, GETOFFSET(x) + kernel_slide); \
+    } while (false)
+    GO(zone_map_ref);
+    GO(kernel_task);
+    GO(vnode_put);
+    GO(vfs_context_current);
+    GO(vnode_lookup);
+    GO(fs_lookup_snapshot_metadata_by_name_and_return_name);
+    GO(apfs_jhash_getvnode);
+    GO(vnode_get_snapshot);
+    if (!auth_ptrs) {
+        GO(add_x0_x0_0x40_ret);
+    }
+    
+    #undef GO
+    F_OFFS = 1;
+}
+
+
+void list_all_snapshots(const char **snapshots, const char *origfs, bool has_origfs)
+{
+    for (const char **snapshot = snapshots; *snapshot; snapshot++) {
+        if (strcmp(origfs, *snapshot) == 0) {
+            has_origfs = true;
+        }
+        LOGME("%s", *snapshot);
+    }
+}
+
+void clear_dev_flags(const char *thedisk)
+{
+    uint64_t devVnode = vnodeForPath(thedisk);
+    _assert(ISADDR(devVnode), @"Failed to clear dev vnode's si_flags.", true);
+    uint64_t v_specinfo = kernel_read64(devVnode + koffset(KSTRUCT_OFFSET_VNODE_VU_SPECINFO));
+    _assert(ISADDR(v_specinfo), @"Failed to clear dev vnode's si_flags.", true);
+    kernel_write32(v_specinfo + koffset(KSTRUCT_OFFSET_SPECINFO_SI_FLAGS), 0);
+    uint32_t si_flags = kernel_read32(v_specinfo + koffset(KSTRUCT_OFFSET_SPECINFO_SI_FLAGS));
+    _assert(si_flags == 0, @"Failed to clear dev vnode's si_flags.", true);
+    _assert(_vnode_put(devVnode) == ERR_SUCCESS, @"Failed to clear dev vnode's si_flags.", true);
+}
+
+uint64_t get_kernel_cred_addr()
+{
+    static uint64_t kernel_proc_struct_addr = 0;
+    static uint64_t kernel_ucred_struct_addr = 0;
+    if (kernel_proc_struct_addr == 0) {
+        kernel_proc_struct_addr = get_proc_struct_for_pid(0);
+        LOGME("kernel_proc_struct_addr = " ADDR, kernel_proc_struct_addr);
+        if (!ISADDR(kernel_proc_struct_addr)) {
+            LOGME("failed to get kernel_proc_struct_addr!");
+            return 0;
+        }
+    }
+    if (kernel_ucred_struct_addr == 0) {
+        kernel_ucred_struct_addr = ReadKernel64(kernel_proc_struct_addr + koffset(KSTRUCT_OFFSET_PROC_UCRED));
+        LOGME("kernel_ucred_struct_addr = " ADDR, kernel_ucred_struct_addr);
+        if (!ISADDR(kernel_ucred_struct_addr)) {
+            LOGME("failed to get kernel_ucred_struct_addr!");
+            return 0;
+        }
+    }
+    return kernel_ucred_struct_addr;
+}
+
+int waitFF(const char *filename) {
+    int rv = 0;
+    rv = access(filename, F_OK);
+    for (int i = 0; !(i >= 100 || rv == ERR_SUCCESS); i++) {
+        usleep(100000);
+        rv = access(filename, F_OK);
+    }
+    return rv;
+}
+
+
+
+void renameSnapshot(int rootfd, const char* rootFsMountPoint, const char **snapshots, const char *origfs)
+{
+    LOGME("Renaming snapshot...");
+    rootfd = open(rootFsMountPoint, O_RDONLY);
+    _assert(rootfd > 0, @"Error renaming snapshot", true);
+    snapshots = snapshot_list(rootfd);
+    _assert(snapshots != NULL, @"Error renaming snapshot", true);
+    LOGME("Snapshots on newly mounted RootFS:");
+    for (const char **snapshot = snapshots; *snapshot; snapshot++) {
+        LOGME("\t%s", *snapshot);
+    }
+    free(snapshots);
+    snapshots = NULL;
+    NSString *systemVersionPlist = @"/System/Library/CoreServices/SystemVersion.plist";
+    NSString *rootSystemVersionPlist = [@(rootFsMountPoint) stringByAppendingPathComponent:systemVersionPlist];
+    _assert(rootSystemVersionPlist != nil, @"Error renaming snapshot", true);
+    NSDictionary *snapshotSystemVersion = [NSDictionary dictionaryWithContentsOfFile:systemVersionPlist];
+    _assert(snapshotSystemVersion != nil, @"Error renaming snapshot", true);
+    NSDictionary *rootfsSystemVersion = [NSDictionary dictionaryWithContentsOfFile:rootSystemVersionPlist];
+    _assert(rootfsSystemVersion != nil, @"Error renaming snapshot", true);
+    if (![rootfsSystemVersion[@"ProductBuildVersion"] isEqualToString:snapshotSystemVersion[@"ProductBuildVersion"]]) {
+        LOGME("snapshot VersionPlist: %@", snapshotSystemVersion);
+        LOGME("rootfs VersionPlist: %@", rootfsSystemVersion);
+        _assert("BuildVersions match"==NULL, @"Error renaming snapshot/root_msg", true);
+    }
+    const char *test_snapshot = "test-snapshot";
+    _assert(fs_snapshot_create(rootfd, test_snapshot, 0) == ERR_SUCCESS, @"Error renaming snapshot", true);
+    _assert(fs_snapshot_delete(rootfd, test_snapshot, 0) == ERR_SUCCESS, @"Error renaming snapshot", true);
+    char *systemSnapshot = copySystemSnapshot();
+    _assert(systemSnapshot != NULL, @"Error renaming snapshot", true);
+    uint64_t system_snapshot_vnode = 0;
+    uint64_t system_snapshot_vnode_v_data = 0;
+    uint32_t system_snapshot_vnode_v_data_flag = 0;
+    if (kCFCoreFoundationVersionNumber >= 1535.12) {
+        system_snapshot_vnode = vnodeForSnapshot(rootfd, systemSnapshot);
+        LOGME("system_snapshot_vnode = " ADDR, system_snapshot_vnode);
+        _assert(ISADDR(system_snapshot_vnode),  @"Error renaming snapshot", true);
+        system_snapshot_vnode_v_data = ReadKernel64(system_snapshot_vnode + koffset(KSTRUCT_OFFSET_VNODE_V_DATA));
+        LOGME("system_snapshot_vnode_v_data = " ADDR, system_snapshot_vnode_v_data);
+        _assert(ISADDR(system_snapshot_vnode_v_data),  @"Error renaming snapshot", true);
+        system_snapshot_vnode_v_data_flag = ReadKernel32(system_snapshot_vnode_v_data + 49);
+        LOGME("system_snapshot_vnode_v_data_flag = 0x%x", system_snapshot_vnode_v_data_flag);
+        WriteKernel32(system_snapshot_vnode_v_data + 49, system_snapshot_vnode_v_data_flag & ~0x40);
+    }
+    _assert(fs_snapshot_rename(rootfd, systemSnapshot, origfs, 0) == ERR_SUCCESS,  @"Error renaming snapshot", true);
+    if (kCFCoreFoundationVersionNumber >= 1535.12) {
+        WriteKernel32(system_snapshot_vnode_v_data + 49, system_snapshot_vnode_v_data_flag);
+        _assert(_vnode_put(system_snapshot_vnode) == ERR_SUCCESS,  @"Error renaming snapshot", true);
+    }
+    free(systemSnapshot);
+    systemSnapshot = NULL;
+    LOGME("Successfully renamed system snapshot.");
+    
+    
+    NOTICE(NSLocalizedString(@"We just took a snapshot of your RootFS in case you want to restore it later. We are going to reboot your device now.", nil), 1, 1);
+    
+    // Reboot.
+    close(rootfd);
+    
+    LOGME("Rebooting...");
+    reboot(RB_QUICK);
+}
+
+void preMountFS(const char *thedisk, int root_fs, const char **snapshots, const char *origfs)
+{
+    LOGME("Pre-Mounting RootFS...");
+    _assert(!is_mountpoint("/var/MobileSoftwareUpdate/mnt1"), @"RootFS already mounted, delete OTA file from Settings - Storage if present and reboot.", true);
+    const char *rootFsMountPoint = "/private/var/tmp/jb/mnt1";
+    if (is_mountpoint(rootFsMountPoint)) {
+        _assert(unmount(rootFsMountPoint, MNT_FORCE) == ERR_SUCCESS, @"Failed to clear dev vnode's si_flags.", true);
+    }
+    _assert(clean_file(rootFsMountPoint), @"Failed to clear dev vnode's si_flags.", true);
+    _assert(ensure_directory(rootFsMountPoint, 0, 0755), @"Failed to clear dev vnode's si_flags.", true);
+    const char *argv[] = {"/sbin/mount_apfs", thedisk, rootFsMountPoint, NULL};
+    _assert(execCmdV(argv[0], 3, argv, ^(pid_t pid) {
+        uint64_t procStructAddr = get_proc_struct_for_pid(pid);
+        LOGME("procStructAddr = " ADDR, procStructAddr);
+        _assert(ISADDR(procStructAddr), @"Failed to clear dev vnode's si_flags.", true);
+        give_creds_to_process_at_addr(procStructAddr, get_kernel_cred_addr());
+    }) == ERR_SUCCESS, @"Failed to clear dev vnode's si_flags.", true);
+    _assert(execCmd("/sbin/mount", NULL) == ERR_SUCCESS, @"Failed to clear dev vnode's si_flags.", true);
+    const char *systemSnapshotLaunchdPath = [@(rootFsMountPoint) stringByAppendingPathComponent:@"sbin/launchd"].UTF8String;
+    _assert(waitFF(systemSnapshotLaunchdPath) == ERR_SUCCESS, @"Failed to clear dev vnode's si_flags.", true);
+    LOGME("Successfully mounted RootFS.");
+    
+    renameSnapshot(root_fs, rootFsMountPoint, snapshots, origfs);
+}
+
+void remountFS() {
+    
+    //Vars
+    int root_fs = open("/", O_RDONLY);
+    
+    _assert(root_fs > 0, @"Error Opening The Root Filesystem!", true);
+    
+    const char **snapshots = snapshot_list(root_fs);
+    const char *origfs = "orig-fs";
+    bool isOriginalFS = false;
+    const char *root_disk = "/dev/disk0s1s1";
+
+    if (snapshots == NULL) {
+        
+        LOGME("No System Snapshot Found! Don't worry, I'll Make One!");
+        
+        //Clear Dev Flags
+        clear_dev_flags(root_disk);
+        
+        //Pre-Mount
+        preMountFS(root_disk, root_fs, snapshots, origfs);
+        
+        close(root_fs);
+    }
+    
+    list_all_snapshots(snapshots, origfs, isOriginalFS);
+    
+    uint64_t rootfs_vnode = vnodeForPath("/");
+    LOGME("rootfs_vnode = " ADDR, rootfs_vnode);
+    _assert(ISADDR(rootfs_vnode), @"Failed to mount", true);
+    uint64_t v_mount = ReadKernel64(rootfs_vnode + koffset(KSTRUCT_OFFSET_VNODE_V_MOUNT));
+    LOGME("v_mount = " ADDR, v_mount);
+    _assert(ISADDR(v_mount), @"Failed to mount", true);
+    uint32_t v_flag = ReadKernel32(v_mount + koffset(KSTRUCT_OFFSET_MOUNT_MNT_FLAG));
+    if ((v_flag & (MNT_RDONLY | MNT_NOSUID))) {
+        v_flag = v_flag & ~(MNT_RDONLY | MNT_NOSUID);
+        WriteKernel32(v_mount + koffset(KSTRUCT_OFFSET_MOUNT_MNT_FLAG), v_flag & ~MNT_ROOTFS);
+        _assert(execCmd("/sbin/mount", "-u", root_disk, NULL) == ERR_SUCCESS, @"Failed to mount", true);
+        WriteKernel32(v_mount + koffset(KSTRUCT_OFFSET_MOUNT_MNT_FLAG), v_flag);
+    }
+    _assert(_vnode_put(rootfs_vnode) == ERR_SUCCESS, @"Failed to mount", true);
+    _assert(execCmd("/sbin/mount", NULL) == ERR_SUCCESS, @"Failed to mount", true);
+    
+}

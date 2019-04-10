@@ -7,10 +7,10 @@ iOS 12-12.1.2 Jailbreak (WORK IN PROGRESS DO NOT USE)
 * Root     
 * Sandbox Escape    
 * TFP0      
-* Remap TFP Set HSP
+* Remap TFP Set HSP      
+* Remount RootFS     
 
 ## TODO:
-* Remount RootFS    
 * Install Bootstrap   
 * Fix Bugs (Performance)    
 

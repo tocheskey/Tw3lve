@@ -8,7 +8,6 @@
 
 #import "Tw3lveView.h"
 
-
 #include "OffsetHolder.h"
 
 #include "ms_offsets.h"
@@ -24,6 +23,8 @@
 #include "offsets.h"
 
 #include "remap_tfp_set_hsp.h"
+
+#include "kernel_exec.h"
 
 #define KERNEL_SEARCH_ADDRESS 0xfffffff007004000
 
@@ -122,27 +123,23 @@ void jelbrek()
         NSLog(@"GID: %u", getgid());
         
         
-        //Remap TFP0
+        //Remap TFP0 (STAGE 1)
         initPF64();
         
-        //GET (2...) OFFSETS
-        #define GO(x) do { \
-        SETOFFSET(x, find_symbol("_" #x)); \
-        if (!ISADDR(GETOFFSET(x))) SETOFFSET(x, find_ ##x()); \
-        LOGME(#x " = " ADDR " + " ADDR, GETOFFSET(x), kernel_slide); \
-        _assert(ISADDR(GETOFFSET(x)), @"Failed to find " #x " offset.", true); \
-        SETOFFSET(x, GETOFFSET(x) + kernel_slide); \
-        } while (false)
-        GO(kernel_task);
-        GO(zone_map_ref);
-        #undef GO
+        //GET (4...) OFFSETS (STAGE 2)
+        getOffsets();
         
-        F_OFFS = 1;
-        
+        //REMAP (STAGE 3)
         remap_tfp0_set_hsp4(&tfp0);
         
-        LOGME("Remount Time!");
+        //INIT KEXECUTE (STAGE 4)
+        LOGME("Init kernel_exection");
+        init_kexecute();
         
+        
+        //REMOUNT (STAGE 5)
+        LOGME("Remount Time!");
+        remountFS();
         
         
         

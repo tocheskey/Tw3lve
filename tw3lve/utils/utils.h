@@ -8,6 +8,7 @@
 #import <mach/mach.h>
 #import <sys/types.h>
 #import <CommonCrypto/CommonDigest.h>
+#include "Tw3lveView.h"
 
 #define __FILENAME__ (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
 #define _assert(test, message, fatal) do \
@@ -16,6 +17,11 @@ int saved_errno = errno; \
 LOGME("__assert(%d:%s)@%s:%u[%s]", saved_errno, #test, __FILENAME__, __LINE__, __FUNCTION__); \
 } \
 while (false)
+
+#define NOTICE(msg, wait, destructive) showAlert(@"TW3LVE", msg, wait, destructive)
+
+
+
 
 
 
@@ -35,3 +41,5 @@ void rootMe (int both, uint64_t proc);
 void unsandbox (uint64_t proc);
 
 void initPF64(void);
+void getOffsets(void);
+void remountFS(void);

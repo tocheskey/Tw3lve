@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B844BA41225E38D100FEA004 /* libsnappy.c in Sources */ = {isa = PBXBuildFile; fileRef = B844BA3F225E38D100FEA004 /* libsnappy.c */; };
+		B844BA47225E3B4A00FEA004 /* kexecute.c in Sources */ = {isa = PBXBuildFile; fileRef = B844BA45225E3B4A00FEA004 /* kexecute.c */; };
+		B844BA4A225E3E3000FEA004 /* vnode_utils.m in Sources */ = {isa = PBXBuildFile; fileRef = B844BA49225E3E3000FEA004 /* vnode_utils.m */; };
+		B844BA50225E466800FEA004 /* kernel_exec.m in Sources */ = {isa = PBXBuildFile; fileRef = B844BA4F225E466800FEA004 /* kernel_exec.m */; };
 		B86C1E18225AE0BA0066A157 /* voucher_swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B86C1E16225AE0BA0066A157 /* voucher_swap.c */; };
 		B88087B4225D2D2700D5E0E4 /* user_client.c in Sources */ = {isa = PBXBuildFile; fileRef = B880879E225D2D2600D5E0E4 /* user_client.c */; };
 		B88087B5225D2D2700D5E0E4 /* kernel_call.c in Sources */ = {isa = PBXBuildFile; fileRef = B88087A2225D2D2600D5E0E4 /* kernel_call.c */; };
@@ -42,6 +46,15 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B844BA3F225E38D100FEA004 /* libsnappy.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = libsnappy.c; sourceTree = "<group>"; };
+		B844BA40225E38D100FEA004 /* libsnappy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libsnappy.h; sourceTree = "<group>"; };
+		B844BA45225E3B4A00FEA004 /* kexecute.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = kexecute.c; sourceTree = "<group>"; };
+		B844BA46225E3B4A00FEA004 /* kexecute.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexecute.h; sourceTree = "<group>"; };
+		B844BA49225E3E3000FEA004 /* vnode_utils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = vnode_utils.m; sourceTree = "<group>"; };
+		B844BA4B225E3E4900FEA004 /* vnode_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vnode_utils.h; sourceTree = "<group>"; };
+		B844BA4F225E466800FEA004 /* kernel_exec.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = kernel_exec.m; sourceTree = "<group>"; };
+		B844BA51225E46A000FEA004 /* kernel_exec.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kernel_exec.h; sourceTree = "<group>"; };
+		B844BA52225E61BF00FEA004 /* reboot.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = reboot.h; sourceTree = "<group>"; };
 		B86C1E16225AE0BA0066A157 /* voucher_swap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = voucher_swap.c; sourceTree = "<group>"; };
 		B86C1E17225AE0BA0066A157 /* voucher_swap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = voucher_swap.h; sourceTree = "<group>"; };
 		B86C1E1A225AE0DD0066A157 /* ipc_port.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ipc_port.h; sourceTree = "<group>"; };
@@ -126,6 +139,33 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B844BA3E225E38B200FEA004 /* snappy */ = {
+			isa = PBXGroup;
+			children = (
+				B844BA3F225E38D100FEA004 /* libsnappy.c */,
+				B844BA40225E38D100FEA004 /* libsnappy.h */,
+			);
+			path = snappy;
+			sourceTree = "<group>";
+		};
+		B844BA48225E3E2700FEA004 /* vnode */ = {
+			isa = PBXGroup;
+			children = (
+				B844BA49225E3E3000FEA004 /* vnode_utils.m */,
+				B844BA4B225E3E4900FEA004 /* vnode_utils.h */,
+			);
+			path = vnode;
+			sourceTree = "<group>";
+		};
+		B844BA4E225E465F00FEA004 /* kexec */ = {
+			isa = PBXGroup;
+			children = (
+				B844BA4F225E466800FEA004 /* kernel_exec.m */,
+				B844BA51225E46A000FEA004 /* kernel_exec.h */,
+			);
+			path = kexec;
+			sourceTree = "<group>";
+		};
 		B880879D225D2CEA00D5E0E4 /* kernel_call */ = {
 			isa = PBXGroup;
 			children = (
@@ -151,6 +191,8 @@
 				B88087A1225D2D2600D5E0E4 /* platform.h */,
 				B880879E225D2D2600D5E0E4 /* user_client.c */,
 				B88087B1225D2D2700D5E0E4 /* user_client.h */,
+				B844BA45225E3B4A00FEA004 /* kexecute.c */,
+				B844BA46225E3B4A00FEA004 /* kexecute.h */,
 			);
 			path = kernel_call;
 			sourceTree = "<group>";
@@ -227,6 +269,7 @@
 				B8A00F9B225AABF7002A6ABF /* OSMessageNotification.h */,
 				B86C1E1A225AE0DD0066A157 /* ipc_port.h */,
 				B88087C7225D315500D5E0E4 /* IOKitLib.h */,
+				B844BA52225E61BF00FEA004 /* reboot.h */,
 			);
 			path = include;
 			sourceTree = "<group>";
@@ -255,6 +298,9 @@
 		B8F22510225D867E00734B5F /* lib */ = {
 			isa = PBXGroup;
 			children = (
+				B844BA4E225E465F00FEA004 /* kexec */,
+				B844BA48225E3E2700FEA004 /* vnode */,
+				B844BA3E225E38B200FEA004 /* snappy */,
 				B8F22526225D8C8000734B5F /* PFOffs */,
 				B8F22522225D8B7400734B5F /* lzssdec */,
 				B8F2251B225D896800734B5F /* remap */,
@@ -373,6 +419,7 @@
 				B88087B7225D2D2700D5E0E4 /* pac.c in Sources */,
 				B8A00F49225A7B55002A6ABF /* Tw3lveView.m in Sources */,
 				B8A00F64225A7D09002A6ABF /* ms_offsets.m in Sources */,
+				B844BA41225E38D100FEA004 /* libsnappy.c in Sources */,
 				B8F22521225D8A0100734B5F /* KernelMemory.c in Sources */,
 				B8A00F94225AAB62002A6ABF /* OffsetHolder.m in Sources */,
 				B88087BC225D2D2700D5E0E4 /* kernel_slide.c in Sources */,
@@ -387,6 +434,9 @@
 				B88087B6225D2D2700D5E0E4 /* kc_parameters.c in Sources */,
 				B88087BB225D2D2700D5E0E4 /* platform.c in Sources */,
 				B88087C5225D308D00D5E0E4 /* offsets.m in Sources */,
+				B844BA47225E3B4A00FEA004 /* kexecute.c in Sources */,
+				B844BA4A225E3E3000FEA004 /* vnode_utils.m in Sources */,
+				B844BA50225E466800FEA004 /* kernel_exec.m in Sources */,
 				B88087C0225D2D7C00D5E0E4 /* utils.m in Sources */,
 				B88087B8225D2D2700D5E0E4 /* kernel_memory.c in Sources */,
 				B8A00F68225A7F8A002A6ABF /* VarHolder.c in Sources */,

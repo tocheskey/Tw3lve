@@ -23,6 +23,39 @@ while (false)
 
 + (Tw3lveView*)sharedController;
 
-
 @end
+
+static inline void showAlertWithCancel(NSString *title, NSString *message, Boolean wait, Boolean destructive, NSString *cancel) {
+    dispatch_semaphore_t semaphore;
+    if (wait)
+        semaphore = dispatch_semaphore_create(0);
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        Tw3lveView *controller = [Tw3lveView sharedController];
+        [controller dismissViewControllerAnimated:YES completion:nil];
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *OK = [UIAlertAction actionWithTitle:@"Okay" style:destructive ? UIAlertActionStyleDestructive : UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            if (wait)
+                dispatch_semaphore_signal(semaphore);
+        }];
+        [alertController addAction:OK];
+        [alertController setPreferredAction:OK];
+        if (cancel) {
+            UIAlertAction *abort = [UIAlertAction actionWithTitle:cancel style:destructive ? UIAlertActionStyleDestructive : UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                if (wait)
+                    dispatch_semaphore_signal(semaphore);
+            }];
+            [alertController addAction:abort];
+            [alertController setPreferredAction:abort];
+        }
+        [controller presentViewController:alertController animated:YES completion:nil];
+    });
+    if (wait)
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+}
+
+
+static inline void showAlert(NSString *title, NSString *message, Boolean wait, Boolean destructive) {
+    showAlertWithCancel(title, message, wait, destructive, nil);
+}
 
