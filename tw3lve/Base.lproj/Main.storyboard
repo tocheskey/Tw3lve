@@ -98,9 +98,6 @@
                                 <state key="normal" title="Jailbreak">
                                     <color key="titleColor" red="0.96444597980000002" green="1" blue="0.97852986419999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
-                                <connections>
-                                    <action selector="jelbrekClik:" destination="BYZ-38-t0r" eventType="touchUpInside" id="d2Z-L7-FCb"/>
-                                </connections>
                             </button>
                             <imageView userInteractionEnabled="NO" alpha="0.84999999999999998" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="tNw-PC-ow8">
                                 <rect key="frame" x="16" y="538" width="150" height="100"/>
