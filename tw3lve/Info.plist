@@ -52,6 +52,7 @@
 		<string>SF-Pro-Text-RegularItalic.otf</string>
 		<string>SF-Pro-Text-Semibold.otf</string>
 		<string>SF-Pro-Text-SemiboldItalic.otf</string>
+		<string>SourceCodeVariable-Roman.ttf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

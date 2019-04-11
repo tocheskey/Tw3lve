@@ -31,6 +31,7 @@
 		B8826807225E887700BAFD6D /* bootstrap in Resources */ = {isa = PBXBuildFile; fileRef = B8826806225E887700BAFD6D /* bootstrap */; };
 		B882680B225E892100BAFD6D /* amfi_utils.m in Sources */ = {isa = PBXBuildFile; fileRef = B8826809225E892100BAFD6D /* amfi_utils.m */; };
 		B882680E225EB7EF00BAFD6D /* libmis.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B882680D225EB7EF00BAFD6D /* libmis.tbd */; };
+		B885D03A225F8E5A00E231A4 /* SourceCodeVariable-Roman.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B885D039225F8E5A00E231A4 /* SourceCodeVariable-Roman.ttf */; };
 		B8A00F46225A7B55002A6ABF /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B8A00F45225A7B55002A6ABF /* AppDelegate.m */; };
 		B8A00F49225A7B55002A6ABF /* Tw3lveView.m in Sources */ = {isa = PBXBuildFile; fileRef = B8A00F48225A7B55002A6ABF /* Tw3lveView.m */; };
 		B8A00F4C225A7B55002A6ABF /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B8A00F4A225A7B55002A6ABF /* Main.storyboard */; };
@@ -133,6 +134,7 @@
 		B882680A225E892100BAFD6D /* amfi_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = amfi_utils.h; sourceTree = "<group>"; };
 		B882680C225EB6D200BAFD6D /* CSCommon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSCommon.h; sourceTree = "<group>"; };
 		B882680D225EB7EF00BAFD6D /* libmis.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libmis.tbd; path = usr/lib/libmis.tbd; sourceTree = SDKROOT; };
+		B885D039225F8E5A00E231A4 /* SourceCodeVariable-Roman.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodeVariable-Roman.ttf"; sourceTree = "<group>"; };
 		B8A00F41225A7B55002A6ABF /* tw3lve.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tw3lve.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B8A00F44225A7B55002A6ABF /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		B8A00F45225A7B55002A6ABF /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -325,6 +327,7 @@
 		B882680F225EBE1200BAFD6D /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				B885D039225F8E5A00E231A4 /* SourceCodeVariable-Roman.ttf */,
 				B8CD0743225ED5E800586BE8 /* SF-Pro-Display-Black.otf */,
 				B8CD0747225ED5E800586BE8 /* SF-Pro-Display-BlackItalic.otf */,
 				B8CD073C225ED5E800586BE8 /* SF-Pro-Display-Bold.otf */,
@@ -569,6 +572,7 @@
 				B8CD0771225ED5E900586BE8 /* SF-Pro-Display-ThinItalic.otf in Resources */,
 				B8CD076E225ED5E900586BE8 /* SF-Pro-Display-RegularItalic.otf in Resources */,
 				B8CD0765225ED5E900586BE8 /* SF-Pro-Display-BlackItalic.otf in Resources */,
+				B885D03A225F8E5A00E231A4 /* SourceCodeVariable-Roman.ttf in Resources */,
 				B8CD075B225ED5E900586BE8 /* SF-Pro-Display-Semibold.otf in Resources */,
 				B8CD0767225ED5E900586BE8 /* SF-Pro-Display-Ultralight.otf in Resources */,
 				B8CD0759225ED5E900586BE8 /* SF-Pro-Text-MediumItalic.otf in Resources */,
