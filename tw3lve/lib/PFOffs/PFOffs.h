@@ -26,8 +26,13 @@ typedef struct {
     kptr_t fs_lookup_snapshot_metadata_by_name_and_return_name;
     kptr_t apfs_jhash_getvnode;
     kptr_t vnode_get_snapshot;
+    kptr_t trustcache;
+    kptr_t pmap_load_trust_cache;
 } offsets_t;
 
 extern offsets_t offs;
+
+extern int (*pmap_load_trust_cache)(uint64_t kernel_trust, size_t length);
+int _pmap_load_trust_cache(uint64_t kernel_trust, size_t length);
 
 #endif /* PFOffs_h */

@@ -141,6 +141,13 @@ void jelbrek()
         LOGME("Remount Time!");
         remountFS();
         
+        if (restoreFS == true)
+        {
+            LOGME("[DANGER] Restoring RootFS...");
+            restoreRootFS();
+        }
+        
+        extractBootstrap();
         
         
         
@@ -149,6 +156,13 @@ void jelbrek()
         
     }
 }
+
+- (IBAction)resetOwO:(id)sender {
+    [sender setTitle:@"Will Restore." forState:UIControlStateNormal];
+    
+    restoreFS = true;
+}
+
 
 
 

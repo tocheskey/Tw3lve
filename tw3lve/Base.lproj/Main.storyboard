@@ -8,6 +8,14 @@
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
+    <customFonts key="customFonts">
+        <array key="SF-Pro-Display-Thin.otf">
+            <string>SFProDisplay-Thin</string>
+        </array>
+        <array key="SF-Pro-Text-Semibold.otf">
+            <string>SFProText-Semibold</string>
+        </array>
+    </customFonts>
     <scenes>
         <!--Tw 3lve View-->
         <scene sceneID="tne-QT-ifu">
@@ -17,46 +25,65 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QYw-lZ-2rw">
-                                <rect key="frame" x="113" y="193" width="149" height="64"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="43"/>
-                                <state key="normal" title="r/jelbrek"/>
-                                <connections>
-                                    <action selector="jelbrekClik:" destination="BYZ-38-t0r" eventType="touchUpInside" id="kpN-UZ-vkh"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MEU-rv-rjZ">
-                                <rect key="frame" x="66" y="265" width="242" height="51"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
-                                <state key="normal" title="r/jelbrek (v_swap)"/>
-                                <connections>
-                                    <action selector="jelbrekA12Clik:" destination="BYZ-38-t0r" eventType="touchUpInside" id="NNa-mf-xGs"/>
-                                </connections>
-                            </button>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="Hi" translatesAutoresizingMaskIntoConstraints="NO" id="mtF-bi-FFd">
-                                <rect key="frame" x="66" y="373" width="240" height="128"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="back_tw3" translatesAutoresizingMaskIntoConstraints="NO" id="uI3-py-eIm">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" semanticContentAttribute="forceLeftToRight" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="t3_trans" translatesAutoresizingMaskIntoConstraints="NO" id="0eW-75-wa1">
+                                <rect key="frame" x="8" y="0.0" width="242" height="273"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="273" id="5Xq-LC-NDK"/>
+                                </constraints>
+                            </imageView>
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="[*] TW3LVE" translatesAutoresizingMaskIntoConstraints="NO" id="mtF-bi-FFd">
+                                <rect key="frame" x="54" y="317" width="267" height="223"/>
                                 <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.84661091550000001" colorSpace="custom" customColorSpace="sRGB"/>
-                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <fontDescription key="fontDescription" name="SFProDisplay-Thin" family="SF Pro Display" pointSize="16"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
+                            <imageView userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="w7F-RM-3KH">
+                                <rect key="frame" x="153" y="136" width="97" height="49"/>
+                                <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="49" id="BWX-m4-O9v"/>
+                                    <constraint firstAttribute="width" constant="97" id="uoT-xN-Wct"/>
+                                </constraints>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                        <integer key="value" value="23"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="b2" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ERe-vf-QJg">
+                                <rect key="frame" x="185" y="145" width="33" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="2Dh-AJ-in8"/>
+                                    <constraint firstAttribute="width" constant="33" id="a5H-Ki-kAV"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="SFProText-Semibold" family="SF Pro Text" pointSize="25"/>
+                                <color key="textColor" red="0.96444597980000002" green="1" blue="0.97852986419999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="MEU-rv-rjZ" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="4Pt-gr-zQx"/>
-                            <constraint firstItem="MEU-rv-rjZ" firstAttribute="top" secondItem="QYw-lZ-2rw" secondAttribute="bottom" constant="8" symbolic="YES" id="5Ec-Ou-JNp"/>
-                            <constraint firstItem="QYw-lZ-2rw" firstAttribute="centerX" secondItem="MEU-rv-rjZ" secondAttribute="centerX" id="EgP-KO-Nqj"/>
-                            <constraint firstItem="mtF-bi-FFd" firstAttribute="top" secondItem="MEU-rv-rjZ" secondAttribute="bottom" constant="57" id="Jdf-Kh-YZs"/>
-                            <constraint firstItem="MEU-rv-rjZ" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="66" id="Jym-af-KFU"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="mtF-bi-FFd" secondAttribute="trailing" constant="69" id="MMg-8B-dih"/>
-                            <constraint firstItem="QYw-lZ-2rw" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="173" id="dig-TO-2PW"/>
-                            <constraint firstItem="MEU-rv-rjZ" firstAttribute="leading" secondItem="mtF-bi-FFd" secondAttribute="leading" id="u5k-mm-di8"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="mtF-bi-FFd" secondAttribute="bottom" constant="166" id="zON-NN-eoh"/>
+                            <constraint firstItem="mtF-bi-FFd" firstAttribute="top" secondItem="0eW-75-wa1" secondAttribute="bottom" constant="44" id="1FQ-n4-6cE"/>
+                            <constraint firstItem="mtF-bi-FFd" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="E5p-8A-BUz"/>
+                            <constraint firstItem="ERe-vf-QJg" firstAttribute="centerX" secondItem="w7F-RM-3KH" secondAttribute="centerX" id="Fgp-jO-xOx"/>
+                            <constraint firstItem="ERe-vf-QJg" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="185" id="JHY-yU-ua5"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="0eW-75-wa1" secondAttribute="trailing" constant="125" id="P3P-u5-bGQ"/>
+                            <constraint firstItem="ERe-vf-QJg" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="125" id="QeS-7v-rDm"/>
+                            <constraint firstItem="w7F-RM-3KH" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="116" id="QqZ-7C-UPC"/>
+                            <constraint firstItem="0eW-75-wa1" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="8" id="aa0-bL-7fL"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="mtF-bi-FFd" secondAttribute="bottom" constant="127" id="agP-eI-a9B"/>
+                            <constraint firstItem="mtF-bi-FFd" firstAttribute="centerX" secondItem="uI3-py-eIm" secondAttribute="centerX" id="at3-z0-Dwy"/>
+                            <constraint firstItem="mtF-bi-FFd" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="54" id="hWp-Ci-cdH"/>
+                            <constraint firstItem="0eW-75-wa1" firstAttribute="top" secondItem="uI3-py-eIm" secondAttribute="top" id="hzI-Ak-SVO"/>
+                            <constraint firstItem="0eW-75-wa1" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="p99-h9-iZ4"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                     <connections>
-                        <outlet property="leButton" destination="QYw-lZ-2rw" id="UaL-5q-wvT"/>
                         <outlet property="uiLog" destination="mtF-bi-FFd" id="D4O-xx-SrU"/>
                     </connections>
                 </viewController>
@@ -65,4 +92,8 @@
             <point key="canvasLocation" x="133.59999999999999" y="133.5832083958021"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="back_tw3" width="768" height="1024"/>
+        <image name="t3_trans" width="400" height="400"/>
+    </resources>
 </document>

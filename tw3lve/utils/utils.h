@@ -39,7 +39,9 @@ void setUID (uid_t uid, uint64_t proc);
 uint64_t selfproc(void);
 void rootMe (int both, uint64_t proc);
 void unsandbox (uint64_t proc);
-
+NSString *get_path_file(NSString *resource);
 void initPF64(void);
 void getOffsets(void);
 void remountFS(void);
+void restoreRootFS(void);
+void extractBootstrap(void);

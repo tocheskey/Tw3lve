@@ -26,6 +26,8 @@
 #include <sys/snapshot.h>
 #include <sys/stat.h>
 #include "reboot.h"
+#include "FakeDpkg.h"
+#include "amfi_utils.h"
 
 extern char **environ;
 NSData *lastSystemOutput=nil;
@@ -325,8 +327,15 @@ void getOffsets() {
     GO(fs_lookup_snapshot_metadata_by_name_and_return_name);
     GO(apfs_jhash_getvnode);
     GO(vnode_get_snapshot);
+    GO(trustcache);
     if (!auth_ptrs) {
         GO(add_x0_x0_0x40_ret);
+        
+    }
+    if (auth_ptrs)
+    {
+        GO(pmap_load_trust_cache);
+        pmap_load_trust_cache = auth_ptrs ? _pmap_load_trust_cache : NULL;
     }
     
     #undef GO
@@ -479,6 +488,42 @@ void preMountFS(const char *thedisk, int root_fs, const char **snapshots, const 
     renameSnapshot(root_fs, rootFsMountPoint, snapshots, origfs);
 }
 
+
+
+int trust_file(NSString *path) {
+    
+    NSMutableArray *paths = [NSMutableArray new];
+    
+    [paths addObject:path];
+    
+    injectTrustCache(paths, GETOFFSET(trustcache), pmap_load_trust_cache);
+    
+    return 0;
+}
+
+
+
+
+NSString *get_path_file(NSString *resource) {
+    NSString *sourcePath = [[NSBundle mainBundle] bundlePath];
+    NSString *path = [[sourcePath stringByAppendingPathComponent:resource] stringByStandardizingPath];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+        return nil;
+    }
+    return path;
+}
+
+int waitForFile(const char *filename) {
+    int rv = 0;
+    rv = access(filename, F_OK);
+    for (int i = 0; !(i >= 100 || rv == ERR_SUCCESS); i++) {
+        usleep(100000);
+        rv = access(filename, F_OK);
+    }
+    return rv;
+}
+
+
 void remountFS() {
     
     //Vars
@@ -523,3 +568,142 @@ void remountFS() {
     _assert(execCmd("/sbin/mount", NULL) == ERR_SUCCESS, @"Failed to mount", true);
     
 }
+
+bool mod_plist_file(NSString *filename, void (^function)(id)) {
+    LOGME("%s: Will modify plist: %@", __FUNCTION__, filename);
+    NSData *data = [NSData dataWithContentsOfFile:filename];
+    if (data == nil) {
+        LOGME("%s: Failed to read file: %@", __FUNCTION__, filename);
+        return false;
+    }
+    NSPropertyListFormat format = 0;
+    NSError *error = nil;
+    id plist = [NSPropertyListSerialization propertyListWithData:data options:NSPropertyListMutableContainersAndLeaves format:&format error:&error];
+    if (plist == nil) {
+        LOGME("%s: Failed to generate plist data: %@", __FUNCTION__, error);
+        return false;
+    }
+    if (function) {
+        function(plist);
+    }
+    NSData *newData = [NSPropertyListSerialization dataWithPropertyList:plist format:format options:0 error:&error];
+    if (newData == nil) {
+        LOGME("%s: Failed to generate new plist data: %@", __FUNCTION__, error);
+        return false;
+    }
+    if (![data isEqual:newData]) {
+        LOGME("%s: Writing to file: %@", __FUNCTION__, filename);
+        if (![newData writeToFile:filename atomically:YES]) {
+            LOGME("%s: Failed to write to file: %@", __FUNCTION__, filename);
+            return false;
+        }
+    }
+    LOGME("%s: Success", __FUNCTION__);
+    return true;
+}
+
+
+
+void restoreRootFS()
+{
+    LOGME("Restoring RootFS....");
+    
+    NOTICE(NSLocalizedString(@"Restoring RootFS. Do not lock, or reboot the device!", nil), 1, 1);
+    LOGME("Renaming system snapshot back...");
+    int rootfd = open("/", O_RDONLY);
+    _assert(rootfd > 0, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
+    const char **snapshots = snapshot_list(rootfd);
+    _assert(snapshots != NULL, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
+    const char *snapshot = *snapshots;
+    LOGME("%s", snapshot);
+    _assert(snapshot != NULL, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
+    
+    
+    if (kCFCoreFoundationVersionNumber < 1452.23) {
+        
+        
+        LOGME("kCFCoreFoundationVersionNumber < 1452.23");
+        
+        const char *systemSnapshotMountPoint = "/private/var/tmp/jb/mnt2";
+        if (is_mountpoint(systemSnapshotMountPoint)) {
+            _assert(unmount(systemSnapshotMountPoint, MNT_FORCE) == ERR_SUCCESS, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
+        }
+        _assert(clean_file(systemSnapshotMountPoint), @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
+        _assert(ensure_directory(systemSnapshotMountPoint, 0, 0755), @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
+        _assert(fs_snapshot_mount(rootfd, systemSnapshotMountPoint, snapshot, 0) == ERR_SUCCESS, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
+        const char *systemSnapshotLaunchdPath = [@(systemSnapshotMountPoint) stringByAppendingPathComponent:@"sbin/launchd"].UTF8String;
+        _assert(waitForFile(systemSnapshotLaunchdPath) == ERR_SUCCESS, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
+        
+        extractDebsForPkg(@"rsync", nil, false);
+        
+        
+        LOGME("INJECT!");
+        trust_file(@"/usr/bin/rsync");
+        
+        _assert(execCmd("/usr/bin/rsync", "-vaxcH", "--progress", "--delete-after", "--exclude=/Developer", [@(systemSnapshotMountPoint) stringByAppendingPathComponent:@"."].UTF8String, "/", NULL) == 0, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
+        unmount(systemSnapshotMountPoint, MNT_FORCE);
+    } else {
+        char *systemSnapshot = copySystemSnapshot();
+        _assert(systemSnapshot != NULL, @"Failed to mount", true);
+        _assert(fs_snapshot_rename(rootfd, snapshot, systemSnapshot, 0) == ERR_SUCCESS, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
+        free(systemSnapshot);
+        systemSnapshot = NULL;
+    }
+    close(rootfd);
+    free(snapshots);
+    snapshots = NULL;
+    LOGME("Successfully renamed system snapshot back.");
+    
+    // Clean up.
+    
+    LOGME("Cleaning up...");
+    static const char *cleanUpFileList[] = {
+        "/var/cache",
+        "/var/lib",
+        "/var/stash",
+        "/var/db/stash",
+        "/var/mobile/Library/Cydia",
+        "/var/mobile/Library/Caches/com.saurik.Cydia",
+        NULL
+    };
+    for (const char **file = cleanUpFileList; *file != NULL; file++) {
+        clean_file(*file);
+    }
+    LOGME("Successfully cleaned up.");
+    
+    // Disallow SpringBoard to show non-default system apps.
+    
+    LOGME("Disallowing SpringBoard to show non-default system apps...");
+    _assert(mod_plist_file(@"/var/mobile/Library/Preferences/com.apple.springboard.plist", ^(id plist) {
+        plist[@"SBShowNonDefaultSystemApps"] = @NO;
+    }), @"Failed to disallow SpringBoard to show non-default system apps.", true);
+    LOGME("Successfully disallowed SpringBoard to show non-default system apps.");
+    
+    
+    // Reboot.
+    
+    NOTICE(NSLocalizedString(@"RootFS Restored! We will reboot your device.", nil), 1, 1);
+    
+    LOGME("Rebooting...");
+    reboot(RB_QUICK);
+    
+}
+
+
+
+
+
+void extractBootstrap()
+{
+    LOGME("Extracting Bootstrap...");
+    extractDebsForPkg(@"grep", nil, false);
+    
+    
+    LOGME("INJECT!");
+    trust_file(@"/bin/grep");
+    
+    execCmd("/bin/grep", NULL);
+    
+}
+
+
