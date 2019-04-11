@@ -136,7 +136,6 @@ void jelbrek()
         LOGME("Init kernel_exection");
         init_kexecute();
         
-        
         //REMOUNT (STAGE 5)
         LOGME("Remount Time!");
         remountFS();

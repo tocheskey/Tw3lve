@@ -618,45 +618,21 @@ void restoreRootFS()
     LOGME("%s", snapshot);
     _assert(snapshot != NULL, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
     
+    char *systemSnapshot = copySystemSnapshot();
+    _assert(systemSnapshot != NULL, @"Failed to mount", true);
+    _assert(fs_snapshot_rename(rootfd, snapshot, systemSnapshot, 0) == ERR_SUCCESS, @"ERROR RENAMING SNAPSHOT!", true);
     
-    if (kCFCoreFoundationVersionNumber < 1452.23) {
-        
-        
-        LOGME("kCFCoreFoundationVersionNumber < 1452.23");
-        
-        const char *systemSnapshotMountPoint = "/private/var/tmp/jb/mnt2";
-        if (is_mountpoint(systemSnapshotMountPoint)) {
-            _assert(unmount(systemSnapshotMountPoint, MNT_FORCE) == ERR_SUCCESS, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
-        }
-        _assert(clean_file(systemSnapshotMountPoint), @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
-        _assert(ensure_directory(systemSnapshotMountPoint, 0, 0755), @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
-        _assert(fs_snapshot_mount(rootfd, systemSnapshotMountPoint, snapshot, 0) == ERR_SUCCESS, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
-        const char *systemSnapshotLaunchdPath = [@(systemSnapshotMountPoint) stringByAppendingPathComponent:@"sbin/launchd"].UTF8String;
-        _assert(waitForFile(systemSnapshotLaunchdPath) == ERR_SUCCESS, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
-        
-        extractDebsForPkg(@"rsync", nil, false);
-        
-        
-        LOGME("INJECT!");
-        trust_file(@"/usr/bin/rsync");
-        
-        _assert(execCmd("/usr/bin/rsync", "-vaxcH", "--progress", "--delete-after", "--exclude=/Developer", [@(systemSnapshotMountPoint) stringByAppendingPathComponent:@"."].UTF8String, "/", NULL) == 0, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
-        unmount(systemSnapshotMountPoint, MNT_FORCE);
-    } else {
-        char *systemSnapshot = copySystemSnapshot();
-        _assert(systemSnapshot != NULL, @"Failed to mount", true);
-        _assert(fs_snapshot_rename(rootfd, snapshot, systemSnapshot, 0) == ERR_SUCCESS, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
-        free(systemSnapshot);
-        systemSnapshot = NULL;
-    }
+    
+    free(systemSnapshot);
+    systemSnapshot = NULL;
     close(rootfd);
     free(snapshots);
     snapshots = NULL;
+    
     LOGME("Successfully renamed system snapshot back.");
     
     // Clean up.
     
-    LOGME("Cleaning up...");
     static const char *cleanUpFileList[] = {
         "/var/cache",
         "/var/lib",
