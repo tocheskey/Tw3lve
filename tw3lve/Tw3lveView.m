@@ -30,6 +30,8 @@
 
 @interface Tw3lveView ()
 {
+    
+    IBOutlet UILabel *DeviceString;
     IBOutlet UIButton *leButton;
 }
 
@@ -47,6 +49,7 @@ Tw3lveView *sharedController = nil;
 - (void)viewDidLoad {
     [super viewDidLoad];
     sharedController = self;
+    DeviceString.text = [UIDevice currentDevice].name;
 }
 
 + (Tw3lveView *)sharedController {
@@ -87,29 +90,49 @@ void jelbrek()
     while (true)
     {
         //Init Offsets
+        runOnMainQueueWithoutDeadlocking(^{
+            logToUI(@"\n[*] Getting Offsets...");
+        });
         offs_init();
 
         NSLog(@"Jailbreak Thread Started!");
+        
+        host_t host = mach_host_self();
         
         
         //Init Exploit
         if (voucher_swap_exp)
         {
+            runOnMainQueueWithoutDeadlocking(^{
+                logToUI(@"\n[*] Running Voucher Swap...");
+            });
             voucher_swap();
             tfp0 = kernel_task_port;
             kernel_slide_init();
             kbase = (kernel_slide + KERNEL_SEARCH_ADDRESS);
             
             //GET ROOT
+            runOnMainQueueWithoutDeadlocking(^{
+                logToUI(@"\n[*] Getting Root...");
+            });
             rootMe(0, selfproc());
+            runOnMainQueueWithoutDeadlocking(^{
+                logToUI(@"\n[*] Unsandboxing...");
+            });
             unsandbox(selfproc());
             
             
         } else {
+            runOnMainQueueWithoutDeadlocking(^{
+                logToUI(@"\n[*] Running Machswap...");
+            });
             ms_offsets_t *ms_offs = get_machswap_offsets();
             machswap_exploit(ms_offs, &tfp0, &kbase);
             kernel_slide = (kbase - KERNEL_SEARCH_ADDRESS);
             //Machswap and Machswap2 already gave us undandboxing and root. Thanks! <3
+            runOnMainQueueWithoutDeadlocking(^{
+                logToUI(@"\n[*] We already have root and unsandbox.");
+            });
             
         }
         
@@ -123,31 +146,55 @@ void jelbrek()
         NSLog(@"GID: %u", getgid());
         
         
-        //Remap TFP0 (STAGE 1)
+        //Remap PF64 (STAGE 1)
+        runOnMainQueueWithoutDeadlocking(^{
+            logToUI(@"\n[*] Init Patchfinder64...");
+        });
         initPF64();
         
         //GET (4...) OFFSETS (STAGE 2)
+        runOnMainQueueWithoutDeadlocking(^{
+            logToUI(@"\n[*] Getting Offsets (2)...");
+        });
         getOffsets();
         
-        //REMAP (STAGE 3)
+        //REMAP AND UNEXPORT (STAGE 3)
+        runOnMainQueueWithoutDeadlocking(^{
+            logToUI(@"\n[*] Remapping TFP0...");
+        });
         remap_tfp0_set_hsp4(&tfp0);
         
+        runOnMainQueueWithoutDeadlocking(^{
+            logToUI(@"\n[*] Unexporting TFP0...");
+        });
+        ux_tfp0(host, 0x80000000 | 3);
+        
+        
         //INIT KEXECUTE (STAGE 4)
-        LOGME("Init kernel_exection");
+        runOnMainQueueWithoutDeadlocking(^{
+            logToUI(@"\n[*] Init kexecute...");
+        });
         init_kexecute();
         
         //REMOUNT (STAGE 5)
-        LOGME("Remount Time!");
+        runOnMainQueueWithoutDeadlocking(^{
+            logToUI(@"\n[*] Remounting RootFS...");
+        });
         remountFS();
         
         if (restoreFS == true)
         {
-            LOGME("[DANGER] Restoring RootFS...");
+            runOnMainQueueWithoutDeadlocking(^{
+                logToUI(@"\n[DANGER] Restoring RootFS...");
+            });
             restoreRootFS();
         }
         
+        //BOOTSTRAP (STAGE 6)
+        runOnMainQueueWithoutDeadlocking(^{
+            logToUI(@"\n[*] Extracting Bootstrap...");
+        });
         extractBootstrap();
-        
         
         
         
@@ -157,42 +204,39 @@ void jelbrek()
 }
 
 - (IBAction)resetOwO:(id)sender {
-    [sender setTitle:@"Will Restore." forState:UIControlStateNormal];
+   
     
     restoreFS = true;
 }
 
 
+void logToUI(NSString *text)
+{
+    runOnMainQueueWithoutDeadlocking(^{
+        NSLog(@"%@", text);
+        Tw3lveView.sharedController.uiLog.text = [Tw3lveView.sharedController.uiLog.text stringByAppendingString:text];
+        NSRange range = NSMakeRange(Tw3lveView.sharedController.uiLog.text.length - 1, 1);
+        [Tw3lveView.sharedController.uiLog scrollRangeToVisible:range];
+    });
+}
+
 
 
 - (IBAction)jelbrekClik:(id)sender {
     
-    runOnMainQueueWithoutDeadlocking(^{
-        NSLog(@"Jailbreak Button Clicked");
-        Tw3lveView.sharedController.uiLog.text = [Tw3lveView.sharedController.uiLog.text stringByAppendingString:@"\nJailbreak Clicked!"];
-    });
-    
-    
-    
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0ul), ^{
-        jelbrek();
-    });
-}
-
-- (IBAction)jelbrekA12Clik:(id)sender {
-    
-    voucher_swap_exp = true;
-    
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0ul), ^{
-        jelbrek();
-    });
-    
+     [sender setTitle:@"Jailbreaking..." forState:UIControlStateNormal];
+     [sender setEnabled:false];
     
    
+    runOnMainQueueWithoutDeadlocking(^{
+        logToUI(@"\n[*] Staring Jailbreak Thread...");
+    });
     
     
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0ul), ^{
+        jelbrek();
+    });
 }
-
 
 
 @end

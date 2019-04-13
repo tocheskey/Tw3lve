@@ -26,8 +26,8 @@
 #include <sys/snapshot.h>
 #include <sys/stat.h>
 #include "reboot.h"
-#include "FakeDpkg.h"
 #include "amfi_utils.h"
+#import <copyfile.h>
 
 extern char **environ;
 NSData *lastSystemOutput=nil;
@@ -666,20 +666,58 @@ void restoreRootFS()
 }
 
 
+void ux_tfp0(host_t orig_host, uint32_t type)
+{
+    uint64_t hostport_addr = get_address_of_port(getpid(), orig_host);
+    uint32_t old = ReadKernel32(hostport_addr);
+    if ((old & type) != type) {
+        WriteKernel32(hostport_addr, type);
+    }
+}
 
+NSString *get_path_res(NSString *resource) {
+    static NSString *sourcePath;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sourcePath = [[NSBundle mainBundle] bundlePath];
+    });
+    
+    NSString *path = [[sourcePath stringByAppendingPathComponent:resource] stringByStandardizingPath];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+        return nil;
+    }
+    return path;
+}
 
 
 void extractBootstrap()
 {
-    LOGME("Extracting Bootstrap...");
-    extractDebsForPkg(@"grep", nil, false);
+    int f = open("/.installed_tw3lve", O_RDONLY);
     
-    
-    LOGME("INJECT!");
-    trust_file(@"/bin/grep");
-    
-    execCmd("/bin/grep", NULL);
-    
+    if (f == -1)
+    {
+        ensure_directory("/tw3", 0, 0755);
+        chdir("/tw3");
+
+        NSString *tarFile = get_path_res(@"bootstrap/tar");
+        const char *tarFile2 = [tarFile UTF8String];
+        
+        NSString *bootstrapFile = get_path_res(@"bootstrap/bootstrap.tar");
+        
+        NSLog(@"%s", tarFile2);
+        
+        copyfile(tarFile2, "/tw3/tar", 0, COPYFILE_ALL);
+        chmod("/tw3/tar", 0777);
+        
+        trust_file(@"/tw3/tar");
+        
+        execCmd("/tw3/tar", NULL);
+        
+         __block pid_t pd = 0;
+        //posix_spawn(&pd, "/bin/tar", 0, 0, (char**)&(const char*[]){"/bin/tar", "--preserve-permissions", "--no-overwrite-dir", "-xvf", [bootstrapFile UTF8String], NULL}, NULL);
+        
+        
+    }
 }
 
 
