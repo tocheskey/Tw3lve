@@ -367,26 +367,10 @@ void clear_dev_flags(const char *thedisk)
 
 uint64_t get_kernel_cred_addr()
 {
-    static uint64_t kernel_proc_struct_addr = 0;
-    static uint64_t kernel_ucred_struct_addr = 0;
-    if (kernel_proc_struct_addr == 0) {
-        kernel_proc_struct_addr = get_proc_struct_for_pid(0);
-        LOGME("kernel_proc_struct_addr = " ADDR, kernel_proc_struct_addr);
-        if (!ISADDR(kernel_proc_struct_addr)) {
-            LOGME("failed to get kernel_proc_struct_addr!");
-            return 0;
-        }
-    }
-    if (kernel_ucred_struct_addr == 0) {
-        kernel_ucred_struct_addr = ReadKernel64(kernel_proc_struct_addr + koffset(KSTRUCT_OFFSET_PROC_UCRED));
-        LOGME("kernel_ucred_struct_addr = " ADDR, kernel_ucred_struct_addr);
-        if (!ISADDR(kernel_ucred_struct_addr)) {
-            LOGME("failed to get kernel_ucred_struct_addr!");
-            return 0;
-        }
-    }
-    return kernel_ucred_struct_addr;
+    uint64_t kernel_proc_struct_addr = ReadKernel64(ReadKernel64(GETOFFSET(kernel_task)) + koffset(KSTRUCT_OFFSET_TASK_BSD_INFO));
+    return ReadKernel64(kernel_proc_struct_addr + koffset(KSTRUCT_OFFSET_PROC_UCRED));
 }
+
 
 int waitFF(const char *filename) {
     int rv = 0;
@@ -397,6 +381,15 @@ int waitFF(const char *filename) {
     }
     return rv;
 }
+
+void set_platform_binary(uint64_t proc)
+{
+    uint64_t task_struct_addr = ReadKernel64(proc + koffset(KSTRUCT_OFFSET_PROC_TASK));
+    uint32_t task_t_flags = ReadKernel32(task_struct_addr + koffset(KSTRUCT_OFFSET_TASK_TFLAGS));
+    task_t_flags |= 0x00000400;
+    WriteKernel32(task_struct_addr + koffset(KSTRUCT_OFFSET_TASK_TFLAGS), task_t_flags);
+}
+
 
 
 
@@ -687,6 +680,13 @@ NSString *get_path_res(NSString *resource) {
         return nil;
     }
     return path;
+}
+
+uint64_t give_creds_to_addr(uint64_t proc, uint64_t cred_addr)
+{
+    uint64_t orig_creds = ReadKernel64(proc + koffset(KSTRUCT_OFFSET_PROC_UCRED));
+    WriteKernel64(proc + koffset(KSTRUCT_OFFSET_PROC_UCRED), cred_addr);
+    return orig_creds;
 }
 
 

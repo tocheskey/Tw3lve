@@ -47,3 +47,6 @@ void restoreRootFS(void);
 void extractBootstrap(void);
 void ux_tfp0(host_t orig_host, uint32_t type);
 void is_unc0ver_installed(void);
+uint64_t give_creds_to_addr(uint64_t proc, uint64_t cred_addr);
+uint64_t get_kernel_cred_addr(void);
+void set_platform_binary(uint64_t proc);
