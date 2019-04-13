@@ -19,7 +19,8 @@ uint64_t task_self_addr2() {
     return cached_task_self_addr;
 }
 
-uint64_t ipc_space_kernel() {
+uint64_t ipc_space_kernel()
+{
     return ReadKernel64(task_self_addr() + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_RECEIVER));
 }
 

@@ -49,10 +49,11 @@ uint64_t cached_task_self_addr_ = 0;
 uint64_t task_self_addr()
 {
     
-    if(F_OFFS == 0)
+    if (F_OFFS == 0)
     {
         found_offs = false;
-    } else {
+    } else
+    {
         found_offs = true;
     }
     
@@ -211,18 +212,26 @@ void remap_tfp0_set_hsp4(mach_port_t *port) {
     km_fake_task_port = zm_fake_task_port;
     vm_prot_t cur = 0;
     vm_prot_t max = 0;
-    _assert(mach_vm_remap(km_fake_task_port, &remapped_task_addr, sizeof_task, 0, VM_FLAGS_ANYWHERE | VM_FLAGS_RETURN_DATA_ADDR, zm_fake_task_port, kernel_task_kaddr, 0, &cur, &max, VM_INHERIT_NONE) == KERN_SUCCESS, message, true);
-    _assert(kernel_task_kaddr != remapped_task_addr, message, true);
+    LOGME("Fail around here.2");
+    _assert(mach_vm_remap(km_fake_task_port, &remapped_task_addr, sizeof_task, 0, VM_FLAGS_ANYWHERE | VM_FLAGS_RETURN_DATA_ADDR, zm_fake_task_port, kernel_task_kaddr, 0, &cur, &max, VM_INHERIT_NONE) == KERN_SUCCESS, "I DONT GET IT", true);
+    LOGME("Fail around here..3");
+    _assert(kernel_task_kaddr != remapped_task_addr, "BRUH Y", true);
+    LOGME("Fail around here..4");
     LOGME("remapped_task_addr = " ADDR, remapped_task_addr);
-    _assert(mach_vm_wire(mach_host_self(), km_fake_task_port, remapped_task_addr, sizeof_task, VM_PROT_READ | VM_PROT_WRITE) == KERN_SUCCESS, message, true);
+    _assert(mach_vm_wire(mach_host_self(), km_fake_task_port, remapped_task_addr, sizeof_task, VM_PROT_READ | VM_PROT_WRITE) == KERN_SUCCESS, "OOW", true);
+    LOGME("Fail around here..5");
     uint64_t port_kaddr = get_address_of_port(getpid(), *port);
     LOGME("port_kaddr = " ADDR, port_kaddr);
+    LOGME("Fail around here..6");
     make_port_fake_task_port(*port, remapped_task_addr);
-    _assert(ReadKernel64(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT)) == remapped_task_addr, message, true);
+    _assert(ReadKernel64(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT)) == remapped_task_addr, "OWO", true);
     // lck_mtx -- arm: 8  arm64: 16
+    LOGME("Fail around here..7");
     uint64_t host_priv_kaddr = get_address_of_port(getpid(), mach_host_self());
+    LOGME("Fail around here..8");
     uint64_t realhost_kaddr = ReadKernel64(host_priv_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT));
     WriteKernel64(realhost_kaddr + koffset(KSTRUCT_OFFSET_HOST_SPECIAL) + 4 * sizeof(void *), port_kaddr);
+    LOGME("Fail around here..9");
     set_all_image_info_addr(kernel_task_kaddr, kbase);
     set_all_image_info_size(kernel_task_kaddr, kernel_slide);
 }
