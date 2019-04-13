@@ -169,6 +169,37 @@ uint64_t make_fake_task(uint64_t vm_map) {
 }
 
 
+void set_all_image_info_addr(uint64_t kernel_task_kaddr, uint64_t all_image_info_addr) {
+    struct task_dyld_info dyld_info = { 0 };
+    mach_msg_type_number_t count = TASK_DYLD_INFO_COUNT;
+    _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, message, true);
+    LOGME("Will set all_image_info_addr to: " ADDR, all_image_info_addr);
+    if (dyld_info.all_image_info_addr != all_image_info_addr) {
+        LOGME("Setting all_image_info_addr...");
+        WriteKernel64(kernel_task_kaddr + koffset(KSTRUCT_OFFSET_TASK_ALL_IMAGE_INFO_ADDR), all_image_info_addr);
+        _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, message, true);
+        _assert(dyld_info.all_image_info_addr == all_image_info_addr, message, true);
+    } else {
+        LOGME("All_image_info_addr already set.");
+    }
+}
+
+void set_all_image_info_size(uint64_t kernel_task_kaddr, uint64_t all_image_info_size) {
+    struct task_dyld_info dyld_info = { 0 };
+    mach_msg_type_number_t count = TASK_DYLD_INFO_COUNT;
+    _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, message, true);
+    LOGME("Will set all_image_info_size to: " ADDR, all_image_info_size);
+    if (dyld_info.all_image_info_size != all_image_info_size) {
+        LOGME("Setting all_image_info_size...");
+        WriteKernel64(kernel_task_kaddr + koffset(KSTRUCT_OFFSET_TASK_ALL_IMAGE_INFO_SIZE), all_image_info_size);
+        _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, message, true);
+        _assert(dyld_info.all_image_info_size == all_image_info_size, message, true);
+    } else {
+        LOGME("All_image_info_size already set.");
+    }
+}
+
+
 
 
 void make_port_fake_task_port(mach_port_t port, uint64_t task_kaddr) {
@@ -247,7 +278,7 @@ void remap_tfp0_set_hsp4(mach_port_t *port) {
     uint64_t host_priv_kaddr = get_address_of_port(getpid(), host);
     uint64_t realhost_kaddr = ReadKernel64(host_priv_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT));
     WriteKernel64(realhost_kaddr + koffset(KSTRUCT_OFFSET_HOST_SPECIAL) + 4 * sizeof(void *), port_kaddr);
+    set_all_image_info_addr(kernel_task_kaddr, kbase);
+    set_all_image_info_size(kernel_task_kaddr, kernel_slide);
     mach_port_deallocate(mach_task_self(), host);
-    
-    LOGME("Remapped TFP0!");
 }

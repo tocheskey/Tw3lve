@@ -28,6 +28,7 @@ typedef struct {
     kptr_t vnode_get_snapshot;
     kptr_t trustcache;
     kptr_t pmap_load_trust_cache;
+    kptr_t kernel_task_offset_all_image_info_addr;
 } offsets_t;
 
 extern offsets_t offs;
