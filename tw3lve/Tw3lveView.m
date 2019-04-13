@@ -107,7 +107,7 @@ void jelbrek()
                 logToUI(@"\n[*] Running Voucher Swap...");
             });
             voucher_swap();
-            
+            set_tfp0(kernel_task_port);
             if (MACH_PORT_VALID(tfp0) && kernel_slide_init() && kernel_slide != 0 && ISADDR((kbase = (kernel_slide + KERNEL_SEARCH_ADDRESS))) && kernel_read32(kbase) == MACH_HEADER_MAGIC) {
                 
                 //GET ROOT

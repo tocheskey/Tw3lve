@@ -12,6 +12,19 @@
 #include "VarHolder.h"
 #include "PFOffs.h"
 #include "kernel_slide.h"
+#include <dlfcn.h>
+#include <mach-o/loader.h>
+#include <mach/host_priv.h>
+#include <mach/mach_error.h>
+#include <mach/mach_host.h>
+#include <mach/mach_port.h>
+#include <mach/mach_time.h>
+#include <mach/task.h>
+#include <mach/thread_act.h>
+#include <pthread/pthread.h>
+#include <sched.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 int F_OFFS = false;
 
