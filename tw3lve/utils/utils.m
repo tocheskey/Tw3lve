@@ -11,6 +11,7 @@
 #import "kernel_memory.h"
 #import "kernel_slide.h"
 #include "parameters.h"
+#include "KernelUtils.h"
 #include "patchfinder64.h"
 #include "offsets.h"
 #include "common.h"
@@ -339,7 +340,7 @@ void getOffsets() {
     }
     
     #undef GO
-    F_OFFS = 1;
+    found_offs = true;
 }
 
 

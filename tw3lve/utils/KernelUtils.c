@@ -7,14 +7,17 @@
 #include "find_port.h"
 #include "OffsetHolder.h"
 #include "KernelMemory.h"
-
+#include "remap_tfp_set_hsp.h"
+#include "common.h"
 #include "VarHolder.h"
 
 uint64_t cached_task_self_addr = 0;
-uint64_t task_self_addr2() {
+bool found_offs = false;
+uint64_t task_self_addr()
+{
     if (cached_task_self_addr == 0) {
-        cached_task_self_addr = find_port_address(mach_task_self(), MACH_MSG_TYPE_COPY_SEND);
-        printf("task self: 0x%llx\n", cached_task_self_addr);
+        cached_task_self_addr = have_kmem_read() && found_offs ? get_address_of_port(getpid(), mach_task_self()) : find_port_address(mach_task_self(), MACH_MSG_TYPE_COPY_SEND);
+        LOGME("task self: 0x%llx", cached_task_self_addr);
     }
     return cached_task_self_addr;
 }

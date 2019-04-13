@@ -21,8 +21,8 @@ while (false)
 #include <stdio.h>
 
 extern int F_OFFS;
-void remap_tfp0_set_hsp4(mach_port_t *port);
 uint64_t get_address_of_port(pid_t pid, mach_port_t port);
+void remap_tfp0_set_hsp4(mach_port_t *port);
 uint64_t get_proc_struct_for_pid(pid_t pid);
-
+uint64_t get_address_of_port(pid_t pid, mach_port_t port);
 #endif /* remap_tfp_set_hsp_h */

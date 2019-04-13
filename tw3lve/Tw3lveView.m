@@ -174,8 +174,6 @@ void jelbrek()
             logToUI(@"\n[*] Remapping TFP0...");
         });
         term_kernel();
-        give_creds_to_addr(get_proc_struct_for_pid(getpid()), get_kernel_cred_addr());
-        set_platform_binary(get_proc_struct_for_pid(getpid()));
         remap_tfp0_set_hsp4(&tfp0);
         
         runOnMainQueueWithoutDeadlocking(^{
