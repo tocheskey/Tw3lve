@@ -22,7 +22,7 @@ void prepare_rwk_via_tfp0(mach_port_t port)
     tfp0 = port;
 }
 
-void prepare_for_rw_with_fake_tfp0(mach_port_t fake_tfp0)
+void set_tfp0_rw(mach_port_t fake_tfp0)
 {
     tfp0 = fake_tfp0;
 }

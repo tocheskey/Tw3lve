@@ -71,7 +71,7 @@ bool kmem_free(uint64_t kaddr, uint64_t size);
 
 void prepare_rk_via_kmem_read_port(mach_port_t port);
 void prepare_rwk_via_tfp0(mach_port_t port);
-void prepare_for_rw_with_fake_tfp0(mach_port_t fake_tfp0);
+void set_tfp0_rw(mach_port_t fake_tfp0);
 
 // query whether kmem read or write is present
 bool have_kmem_read(void);

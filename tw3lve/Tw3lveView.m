@@ -7,9 +7,9 @@
 //
 
 #import "Tw3lveView.h"
-
+#include "KernelMemory.h"
 #include "OffsetHolder.h"
-
+#include "KernelUtils.h"
 #include "ms_offsets.h"
 #include "machswap.h"
 #include "VarHolder.h"
@@ -106,11 +106,14 @@ void jelbrek()
             runOnMainQueueWithoutDeadlocking(^{
                 logToUI(@"\n[*] Running Voucher Swap...");
             });
+            
             voucher_swap();
-            set_tfp0(kernel_task_port);
-            if (MACH_PORT_VALID(tfp0) && kernel_slide_init() && kernel_slide != 0 && ISADDR((kbase = (kernel_slide + KERNEL_SEARCH_ADDRESS))) && kernel_read32(kbase) == MACH_HEADER_MAGIC) {
+            set_tfp0_rw(kernel_task_port);
+            if (MACH_PORT_VALID(tfp0) &&
+                ISADDR((kbase = find_kernel_base())) &&
+                ReadKernel32(kbase) == MACH_HEADER_MAGIC &&
+                ISADDR((kernel_slide = (kbase - KERNEL_SEARCH_ADDRESS)))) {
                 
-                //GET ROOT
                 runOnMainQueueWithoutDeadlocking(^{
                     logToUI(@"\n[*] Getting Root...");
                 });
@@ -120,9 +123,6 @@ void jelbrek()
                 });
                 unsandbox(selfproc());
                 
-            } else {
-                LOGME("ERROR!");
-                break;
             }
             
             
@@ -173,7 +173,6 @@ void jelbrek()
         runOnMainQueueWithoutDeadlocking(^{
             logToUI(@"\n[*] Remapping TFP0...");
         });
-        term_kernel();
         remap_tfp0_set_hsp4(&tfp0);
         
         runOnMainQueueWithoutDeadlocking(^{

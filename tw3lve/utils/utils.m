@@ -341,6 +341,7 @@ void getOffsets() {
     
     #undef GO
     found_offs = true;
+    term_kernel();
 }
 
 
