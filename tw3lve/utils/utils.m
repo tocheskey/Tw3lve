@@ -690,6 +690,18 @@ NSString *get_path_res(NSString *resource) {
 }
 
 
+void is_unc0ver_installed()
+{
+    int f = open("/.installed_unc0ver", O_RDONLY);
+    
+    if (!(f == -1))
+    {
+        NOTICE(NSLocalizedString(@"Unc0ver Has Been Detected! Please restore your RootFS (through unc0ver app) and completely remove unc0ver before using Tw3lve. We are going to reboot your device. No changes have been made.", nil), 1, 1);
+        reboot(RB_QUICK);
+    }
+    
+}
+
 void extractBootstrap()
 {
     int f = open("/.installed_tw3lve", O_RDONLY);

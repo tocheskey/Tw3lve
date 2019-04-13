@@ -182,6 +182,12 @@ void jelbrek()
         });
         remountFS();
         
+        
+        //IS UNC0VER INSTALLED?
+        is_unc0ver_installed();
+        
+        
+        
         if (restoreFS == true)
         {
             runOnMainQueueWithoutDeadlocking(^{

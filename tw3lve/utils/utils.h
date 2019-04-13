@@ -46,3 +46,4 @@ void remountFS(void);
 void restoreRootFS(void);
 void extractBootstrap(void);
 void ux_tfp0(host_t orig_host, uint32_t type);
+void is_unc0ver_installed(void);
