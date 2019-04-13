@@ -107,10 +107,8 @@ void jelbrek()
                 logToUI(@"\n[*] Running Voucher Swap...");
             });
             voucher_swap();
-            if (MACH_PORT_VALID(tfp0))
-            {
-                kernel_slide_init();
-                kbase = (kernel_slide + KERNEL_SEARCH_ADDRESS);
+            
+            if (MACH_PORT_VALID(tfp0) && kernel_slide_init() && kernel_slide != 0 && ISADDR((kbase = (kernel_slide + KERNEL_SEARCH_ADDRESS))) && kernel_read32(kbase) == MACH_HEADER_MAGIC) {
                 
                 //GET ROOT
                 runOnMainQueueWithoutDeadlocking(^{
@@ -121,10 +119,12 @@ void jelbrek()
                     logToUI(@"\n[*] Unsandboxing...");
                 });
                 unsandbox(selfproc());
+                
             } else {
                 LOGME("ERROR!");
                 break;
             }
+            
             
         } else {
             runOnMainQueueWithoutDeadlocking(^{
@@ -173,7 +173,7 @@ void jelbrek()
         runOnMainQueueWithoutDeadlocking(^{
             logToUI(@"\n[*] Remapping TFP0...");
         });
-        remap_tfp0_set_hsp4();
+        remap_tfp0_set_hsp4(&tfp0);
         
         runOnMainQueueWithoutDeadlocking(^{
             logToUI(@"\n[*] Unexporting TFP0...");

@@ -200,7 +200,8 @@ void set_all_image_info_size(uint64_t kernel_task_kaddr, uint64_t all_image_info
 
 
 kern_return_t mach_vm_remap(vm_map_t dst, mach_vm_address_t *dst_addr, mach_vm_size_t size, mach_vm_offset_t mask, int flags, vm_map_t src, mach_vm_address_t src_addr, boolean_t copy, vm_prot_t *cur_prot, vm_prot_t *max_prot, vm_inherit_t inherit);
-void remap_tfp0_set_hsp4() {
+
+void remap_tfp0_set_hsp4(mach_port_t *port) {
     // huge thanks to Siguza for hsp4 & v0rtex
     // for explainations and being a good rubber duck :p
     
@@ -243,8 +244,8 @@ void remap_tfp0_set_hsp4() {
     mach_port_t km_fake_task_port = MACH_PORT_NULL;
     kern_return_t kr = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &zm_fake_task_port);
     kr = kr || mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &km_fake_task_port);
-    if (kr == KERN_SUCCESS && tfp0 == MACH_PORT_NULL) {
-        _assert(mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &tfp0) == KERN_SUCCESS, message, true);
+    if (kr == KERN_SUCCESS && *port == MACH_PORT_NULL) {
+        _assert(mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, port) == KERN_SUCCESS, message, true);
     }
     // strref \"Nothing being freed to the zone_map. start = end = %p\\n\"
     // or traditional \"zone_init: kmem_suballoc failed\"
@@ -263,9 +264,9 @@ void remap_tfp0_set_hsp4() {
     _assert(kernel_task_kaddr != remapped_task_addr, message, true);
     LOGME("remapped_task_addr = " ADDR, remapped_task_addr);
     _assert(mach_vm_wire(host, km_fake_task_port, remapped_task_addr, sizeof_task, VM_PROT_READ | VM_PROT_WRITE) == KERN_SUCCESS, message, true);
-    uint64_t port_kaddr = get_address_of_port(getpid(), tfp0);
+    uint64_t port_kaddr = get_address_of_port(getpid(), *port);
     LOGME("port_kaddr = " ADDR, port_kaddr);
-    make_port_fake_task_port(tfp0, remapped_task_addr);
+    make_port_fake_task_port(*port, remapped_task_addr);
     _assert(ReadKernel64(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT)) == remapped_task_addr, message, true);
     // lck_mtx -- arm: 8  arm64: 16
     uint64_t host_priv_kaddr = get_address_of_port(getpid(), host);
