@@ -26,6 +26,7 @@
 #include <sys/snapshot.h>
 #include <sys/stat.h>
 #include "reboot.h"
+#include "FakeDpkg.h"
 #include "amfi_utils.h"
 
 extern char **environ;
@@ -671,7 +672,13 @@ void restoreRootFS()
 void extractBootstrap()
 {
     LOGME("Extracting Bootstrap...");
+    extractDebsForPkg(@"grep", nil, false);
     
+    
+    LOGME("INJECT!");
+    trust_file(@"/bin/grep");
+    
+    execCmd("/bin/grep", NULL);
     
 }
 
