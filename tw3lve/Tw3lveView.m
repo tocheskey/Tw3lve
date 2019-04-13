@@ -107,20 +107,24 @@ void jelbrek()
                 logToUI(@"\n[*] Running Voucher Swap...");
             });
             voucher_swap();
-            tfp0 = kernel_task_port;
-            kernel_slide_init();
-            kbase = (kernel_slide + KERNEL_SEARCH_ADDRESS);
-            
-            //GET ROOT
-            runOnMainQueueWithoutDeadlocking(^{
-                logToUI(@"\n[*] Getting Root...");
-            });
-            rootMe(0, selfproc());
-            runOnMainQueueWithoutDeadlocking(^{
-                logToUI(@"\n[*] Unsandboxing...");
-            });
-            unsandbox(selfproc());
-            
+            if (MACH_PORT_VALID(tfp0))
+            {
+                kernel_slide_init();
+                kbase = (kernel_slide + KERNEL_SEARCH_ADDRESS);
+                
+                //GET ROOT
+                runOnMainQueueWithoutDeadlocking(^{
+                    logToUI(@"\n[*] Getting Root...");
+                });
+                rootMe(0, selfproc());
+                runOnMainQueueWithoutDeadlocking(^{
+                    logToUI(@"\n[*] Unsandboxing...");
+                });
+                unsandbox(selfproc());
+            } else {
+                LOGME("ERROR!");
+                break;
+            }
             
         } else {
             runOnMainQueueWithoutDeadlocking(^{
@@ -128,17 +132,24 @@ void jelbrek()
             });
             ms_offsets_t *ms_offs = get_machswap_offsets();
             machswap_exploit(ms_offs, &tfp0, &kbase);
-            kernel_slide = (kbase - KERNEL_SEARCH_ADDRESS);
-            //Machswap and Machswap2 already gave us undandboxing and root. Thanks! <3
-            runOnMainQueueWithoutDeadlocking(^{
-                logToUI(@"\n[*] We already have root and unsandbox.");
-            });
+            
+            if (MACH_PORT_VALID(tfp0))
+            {
+                kernel_slide = (kbase - KERNEL_SEARCH_ADDRESS);
+                //Machswap and Machswap2 already gave us undandboxing and root. Thanks! <3
+                runOnMainQueueWithoutDeadlocking(^{
+                    logToUI(@"\n[*] We already have root and unsandbox.");
+                });
+            } else {
+                LOGME("ERROR!");
+                break;
+            }
             
         }
         
 
         //Log
-        NSLog(@"%@", [NSString stringWithFormat:@"TFP0: %x", tfp0]);
+        NSLog(@"%@", [NSString stringWithFormat:@"TFP0: 0x%x", tfp0]);
         NSLog(@"%@", [NSString stringWithFormat:@"KERNEL BASE: %llx", kbase]);
         NSLog(@"%@", [NSString stringWithFormat:@"KERNEL SLIDE: %llx", kernel_slide]);
         
@@ -146,7 +157,7 @@ void jelbrek()
         NSLog(@"GID: %u", getgid());
         
         
-        //Remap PF64 (STAGE 1)
+        //PF64 (STAGE 1)
         runOnMainQueueWithoutDeadlocking(^{
             logToUI(@"\n[*] Init Patchfinder64...");
         });
@@ -162,7 +173,7 @@ void jelbrek()
         runOnMainQueueWithoutDeadlocking(^{
             logToUI(@"\n[*] Remapping TFP0...");
         });
-        remap_tfp0_set_hsp4(&tfp0);
+        remap_tfp0_set_hsp4();
         
         runOnMainQueueWithoutDeadlocking(^{
             logToUI(@"\n[*] Unexporting TFP0...");

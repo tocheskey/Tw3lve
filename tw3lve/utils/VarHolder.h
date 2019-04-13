@@ -16,4 +16,6 @@ extern uint64_t kbase;
 extern uint64_t ourprocowo;
 extern uint64_t current_task2;
 
+void set_tfp0(mach_port_t tfpOwO);
+
 #endif /* VarHolder_h */

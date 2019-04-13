@@ -13,3 +13,8 @@ uint64_t kbase;
 uint64_t current_task2;
 uint64_t ourprocowo;
 uint fount_offsets = 0;
+
+void set_tfp0(mach_port_t tfpOwO)
+{
+    tfp0 = tfpOwO;
+}
