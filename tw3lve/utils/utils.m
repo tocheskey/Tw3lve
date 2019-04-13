@@ -320,23 +320,24 @@ void getOffsets() {
     _assert(ISADDR(GETOFFSET(x)), @"Failed to find " #x " offset.", true); \
     SETOFFSET(x, GETOFFSET(x) + kernel_slide); \
     } while (false)
-    GO(zone_map_ref);
-    GO(kernel_task);
-    GO(vnode_put);
-    GO(vfs_context_current);
-    GO(vnode_lookup);
-    GO(fs_lookup_snapshot_metadata_by_name_and_return_name);
-    GO(apfs_jhash_getvnode);
-    GO(vnode_get_snapshot);
     GO(trustcache);
     if (!auth_ptrs) {
         GO(add_x0_x0_0x40_ret);
-        
     }
-    if (auth_ptrs)
-    {
+    GO(zone_map_ref);
+    GO(vfs_context_current);
+    GO(vnode_lookup);
+    GO(vnode_put);
+    GO(kernel_task);
+    GO(lck_mtx_lock);
+    GO(lck_mtx_unlock);
+    if (kCFCoreFoundationVersionNumber >= 1535.12) {
+        GO(vnode_get_snapshot);
+        GO(fs_lookup_snapshot_metadata_by_name_and_return_name);
+        GO(apfs_jhash_getvnode);
+    }
+    if (auth_ptrs) {
         GO(pmap_load_trust_cache);
-        pmap_load_trust_cache = auth_ptrs ? _pmap_load_trust_cache : NULL;
     }
     
     #undef GO

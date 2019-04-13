@@ -29,6 +29,8 @@ typedef struct {
     kptr_t trustcache;
     kptr_t pmap_load_trust_cache;
     kptr_t kernel_task_offset_all_image_info_addr;
+    kptr_t lck_mtx_lock;
+    kptr_t lck_mtx_unlock;
 } offsets_t;
 
 extern offsets_t offs;
