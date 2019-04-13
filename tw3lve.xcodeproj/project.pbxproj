@@ -25,6 +25,8 @@
 		B88087BE225D2D2700D5E0E4 /* platform_match.c in Sources */ = {isa = PBXBuildFile; fileRef = B88087B2225D2D2700D5E0E4 /* platform_match.c */; };
 		B88087C0225D2D7C00D5E0E4 /* utils.m in Sources */ = {isa = PBXBuildFile; fileRef = B88087BF225D2D7C00D5E0E4 /* utils.m */; };
 		B88087C5225D308D00D5E0E4 /* offsets.m in Sources */ = {isa = PBXBuildFile; fileRef = B88087C4225D308D00D5E0E4 /* offsets.m */; };
+		B88267FB225E821300BAFD6D /* FakeDpkg.m in Sources */ = {isa = PBXBuildFile; fileRef = B88267F9225E821300BAFD6D /* FakeDpkg.m */; };
+		B88267FF225E834600BAFD6D /* ArchiveFile.m in Sources */ = {isa = PBXBuildFile; fileRef = B88267FD225E834600BAFD6D /* ArchiveFile.m */; };
 		B8826805225E839F00BAFD6D /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B8826804225E839F00BAFD6D /* libarchive.tbd */; };
 		B8826807225E887700BAFD6D /* bootstrap in Resources */ = {isa = PBXBuildFile; fileRef = B8826806225E887700BAFD6D /* bootstrap */; };
 		B882680B225E892100BAFD6D /* amfi_utils.m in Sources */ = {isa = PBXBuildFile; fileRef = B8826809225E892100BAFD6D /* amfi_utils.m */; };
@@ -120,6 +122,10 @@
 		B88087C4225D308D00D5E0E4 /* offsets.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = offsets.m; sourceTree = "<group>"; };
 		B88087C6225D30A200D5E0E4 /* offsets.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = offsets.h; sourceTree = "<group>"; };
 		B88087C7225D315500D5E0E4 /* IOKitLib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IOKitLib.h; sourceTree = "<group>"; };
+		B88267F9225E821300BAFD6D /* FakeDpkg.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FakeDpkg.m; sourceTree = "<group>"; };
+		B88267FA225E821300BAFD6D /* FakeDpkg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FakeDpkg.h; sourceTree = "<group>"; };
+		B88267FD225E834600BAFD6D /* ArchiveFile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ArchiveFile.m; sourceTree = "<group>"; };
+		B88267FE225E834600BAFD6D /* ArchiveFile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ArchiveFile.h; sourceTree = "<group>"; };
 		B8826801225E837400BAFD6D /* archive_entry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = archive_entry.h; sourceTree = "<group>"; };
 		B8826802225E838200BAFD6D /* archive.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = archive.h; sourceTree = "<group>"; };
 		B8826804225E839F00BAFD6D /* libarchive.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libarchive.tbd; path = usr/lib/libarchive.tbd; sourceTree = SDKROOT; };
@@ -282,6 +288,24 @@
 			path = offsets;
 			sourceTree = "<group>";
 		};
+		B88267F8225E494300BAFD6D /* FakeDpkg */ = {
+			isa = PBXGroup;
+			children = (
+				B88267F9225E821300BAFD6D /* FakeDpkg.m */,
+				B88267FA225E821300BAFD6D /* FakeDpkg.h */,
+			);
+			path = FakeDpkg;
+			sourceTree = "<group>";
+		};
+		B88267FC225E833D00BAFD6D /* Archive */ = {
+			isa = PBXGroup;
+			children = (
+				B88267FD225E834600BAFD6D /* ArchiveFile.m */,
+				B88267FE225E834600BAFD6D /* ArchiveFile.h */,
+			);
+			path = Archive;
+			sourceTree = "<group>";
+		};
 		B8826803225E839E00BAFD6D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -437,6 +461,8 @@
 		B8F22510225D867E00734B5F /* lib */ = {
 			isa = PBXGroup;
 			children = (
+				B88267FC225E833D00BAFD6D /* Archive */,
+				B88267F8225E494300BAFD6D /* FakeDpkg */,
 				B844BA4E225E465F00FEA004 /* kexec */,
 				B844BA48225E3E2700FEA004 /* vnode */,
 				B844BA3E225E38B200FEA004 /* snappy */,
@@ -607,6 +633,7 @@
 				B88087C5225D308D00D5E0E4 /* offsets.m in Sources */,
 				B844BA47225E3B4A00FEA004 /* kexecute.c in Sources */,
 				B844BA4A225E3E3000FEA004 /* vnode_utils.m in Sources */,
+				B88267FF225E834600BAFD6D /* ArchiveFile.m in Sources */,
 				B844BA50225E466800FEA004 /* kernel_exec.m in Sources */,
 				B88087C0225D2D7C00D5E0E4 /* utils.m in Sources */,
 				B88087B8225D2D2700D5E0E4 /* kernel_memory.c in Sources */,
@@ -617,6 +644,7 @@
 				B86C1E18225AE0BA0066A157 /* voucher_swap.c in Sources */,
 				B8F22529225D8C8800734B5F /* PFOffs.c in Sources */,
 				B8F22525225D8B8100734B5F /* lzssdec.cpp in Sources */,
+				B88267FB225E821300BAFD6D /* FakeDpkg.m in Sources */,
 				B8A00F54225A7B56002A6ABF /* main.m in Sources */,
 				B8A00F46225A7B55002A6ABF /* AppDelegate.m in Sources */,
 				B88087B5225D2D2700D5E0E4 /* kernel_call.c in Sources */,
@@ -766,7 +794,7 @@
 				);
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 95MPSDK9P6;
+				DEVELOPMENT_TEAM = GR3NL679U6;
 				INFOPLIST_FILE = tw3lve/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -779,7 +807,7 @@
 					IOKit,
 					"-w",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = me.chr0nic.tw3lve;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brandonplank.Jailbreak12;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = "arm64 arm64e";
@@ -795,7 +823,7 @@
 				);
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 95MPSDK9P6;
+				DEVELOPMENT_TEAM = GR3NL679U6;
 				INFOPLIST_FILE = tw3lve/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -808,7 +836,7 @@
 					IOKit,
 					"-w",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = me.chr0nic.tw3lve;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brandonplank.Jailbreak12;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = "arm64 arm64e";
