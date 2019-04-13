@@ -224,6 +224,7 @@ void remap_tfp0_set_hsp4(mach_port_t *port) {
     LOGME("port_kaddr = " ADDR, port_kaddr);
     LOGME("Fail around here..6");
     make_port_fake_task_port(*port, remapped_task_addr);
+    LOGME("Fail around here..6/2");
     _assert(ReadKernel64(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT)) == remapped_task_addr, "OWO", true);
     // lck_mtx -- arm: 8  arm64: 16
     LOGME("Fail around here..7");
