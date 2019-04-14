@@ -215,11 +215,18 @@ void jelbrek()
         remountFS();
         
         
+        
+        runOnMainQueueWithoutDeadlocking(^{
+            logToUI(@"\n[*] Detecting if any other jailbreak is installed...");
+        });
         //IS UNC0VER INSTALLED?
         is_unc0ver_installed();
         //Is LAST_Surprise installed?
         is_last_surprise_installed();
         
+        runOnMainQueueWithoutDeadlocking(^{
+            logToUI(@"\n[*] No jailbreak is installed! Proceeding with the jailbreak.");
+        });
         
         
         if (restoreFS == true)
