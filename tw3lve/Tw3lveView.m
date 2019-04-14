@@ -111,10 +111,11 @@ void jelbrek()
             set_tfp0_rw(kernel_task_port);
             
             
-            if (MACH_PORT_VALID(tfp0) &&
-                ISADDR((kbase = find_kernel_base())) &&
-                ReadKernel32(kbase) == MACH_HEADER_MAGIC &&
-                ISADDR((kernel_slide = (kbase - KERNEL_SEARCH_ADDRESS)))) {
+            if (MACH_PORT_VALID(tfp0) {
+                
+                kbase = find_kernel_base();
+                kernel_slide = (kbase - KERNEL_SEARCH_ADDRESS);
+                
                 runOnMainQueueWithoutDeadlocking(^{
                     logToUI(@"\n[*] Getting Root...");
                 });
@@ -123,6 +124,10 @@ void jelbrek()
                     logToUI(@"\n[*] Unsandboxing...");
                 });
                 unsandbox(selfproc());
+                
+            } else {
+                LOGME("ERROR!");
+                break;
             }
             
             
