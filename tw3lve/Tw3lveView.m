@@ -22,6 +22,8 @@
 #include "PFOffs.h"
 #include "offsets.h"
 
+#include <sys/sysctl.h>
+
 #include "remap_tfp_set_hsp.h"
 
 #include "kernel_exec.h"
@@ -31,6 +33,7 @@
 @interface Tw3lveView ()
 {
     
+    IBOutlet UILabel *iosVers;
     IBOutlet UILabel *DeviceString;
     IBOutlet UIButton *leButton;
 }
@@ -49,7 +52,19 @@ Tw3lveView *sharedController = nil;
 - (void)viewDidLoad {
     [super viewDidLoad];
     sharedController = self;
-    DeviceString.text = [UIDevice currentDevice].name;
+    
+    [iosVers setText:[[UIDevice currentDevice] systemVersion]];
+    size_t len = 0;
+    char *model = malloc(len * sizeof(char));
+    sysctlbyname("hw.model", NULL, &len, NULL, 0);
+    if (len) {
+        sysctlbyname("hw.model", model, &len, NULL, 0);
+        printf("[INFO]: model internal name: %s (%s)\n", model, [[[UIDevice currentDevice] systemVersion] UTF8String]);
+    }
+    
+    
+    NSString *modelStr = [[NSString stringWithFormat:@"%s", model] uppercaseString];
+    [DeviceString setText:modelStr];
 }
 
 + (Tw3lveView *)sharedController {
@@ -83,7 +98,7 @@ void runOnMainQueueWithoutDeadlocking(void (^block)(void))
 
 bool restoreFS = false;
 
-bool voucher_swap_exp = false;
+bool voucher_swap_exp = true;
 
 void jelbrek()
 {
