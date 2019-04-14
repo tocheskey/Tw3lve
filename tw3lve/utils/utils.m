@@ -720,6 +720,20 @@ void is_last_surprise_installed()
     
 }
 
+void is_electra12_installed()
+{
+    int f = open("/Library/LaunchDaemons/jailbreakd.plist", O_RDONLY);
+    
+    if (!(f == -1))
+    {
+        /**NOTICE(NSLocalizedString(@"Another jailbreak Has Been Detected! Please remove the other jailbreak before using Tw3lve. We are going to reboot your device. We can restore your snapshot if you like.", nil), 1, 1);
+        restoreRootFS();
+        //reboot(RB_QUICK);**/
+        
+    }
+    
+}
+
 void extractBootstrap()
 {
     int f = open("/.installed_tw3lve", O_RDONLY);
