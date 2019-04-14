@@ -346,6 +346,7 @@ void getOffsets() {
 }
 
 
+
 void list_all_snapshots(const char **snapshots, const char *origfs, bool has_origfs)
 {
     for (const char **snapshot = snapshots; *snapshot; snapshot++) {

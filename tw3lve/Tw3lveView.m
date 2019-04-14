@@ -111,7 +111,7 @@ void jelbrek()
             set_tfp0_rw(kernel_task_port);
             
             
-            if (MACH_PORT_VALID(tfp0) {
+            if (MACH_PORT_VALID(tfp0)) {
                 
                 kbase = find_kernel_base();
                 kernel_slide = (kbase - KERNEL_SEARCH_ADDRESS);
@@ -129,6 +129,7 @@ void jelbrek()
                 LOGME("ERROR!");
                 break;
             }
+            
             
             
         } else {
@@ -178,7 +179,7 @@ void jelbrek()
         runOnMainQueueWithoutDeadlocking(^{
             logToUI(@"\n[*] Remapping TFP0...");
         });
-        remap_tfp0_set_hsp4(&tfp0);
+        setHSP4();
         
         runOnMainQueueWithoutDeadlocking(^{
             logToUI(@"\n[*] Unexporting TFP0...");
