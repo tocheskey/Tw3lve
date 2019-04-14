@@ -700,8 +700,22 @@ void is_unc0ver_installed()
     
     if (!(f == -1))
     {
-        NOTICE(NSLocalizedString(@"Unc0ver Has Been Detected! Please restore your RootFS (through unc0ver app) and completely remove unc0ver before using Tw3lve. We are going to reboot your device. No changes have been made.", nil), 1, 1);
-        reboot(RB_QUICK);
+        NOTICE(NSLocalizedString(@"Unc0ver Has Been Detected! Please remove Unc0ver before using Tw3lve. We are going to reboot your device. We can restore your snapshot if you like.", nil), 1, 1);
+        restoreRootFS();
+        //reboot(RB_QUICK);
+    }
+    
+}
+
+void is_last_surprise_installed()
+{
+    int f = open("/.installed_last_surprise", O_RDONLY);
+    
+    if (!(f == -1))
+    {
+        NOTICE(NSLocalizedString(@"Last_Surprise Has Been Detected! Please remove Last_surprise before using Tw3lve. We are going to reboot your device. We can restore your snapshot if you like.", nil), 1, 1);
+        restoreRootFS();
+        //reboot(RB_QUICK);
     }
     
 }

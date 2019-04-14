@@ -217,6 +217,8 @@ void jelbrek()
         
         //IS UNC0VER INSTALLED?
         is_unc0ver_installed();
+        //Is LAST_Surprise installed?
+        is_last_surprise_installed();
         
         
         
