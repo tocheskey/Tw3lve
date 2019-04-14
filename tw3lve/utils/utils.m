@@ -605,7 +605,7 @@ void restoreRootFS()
 {
     LOGME("Restoring RootFS....");
     
-    NOTICE(NSLocalizedString(@"Restoring RootFS. Do not lock, or reboot the device!", nil), 1, 1);
+    //NOTICE(NSLocalizedString(@"Restoring RootFS. Do not lock, or reboot the device!", nil), 1, 1);
     LOGME("Renaming system snapshot back...");
     int rootfd = open("/", O_RDONLY);
     _assert(rootfd > 0, @"Unable to mount or rename system snapshot.  Delete OTA file from Settings - Storage if present", true);
@@ -726,9 +726,9 @@ void is_electra12_installed()
     
     if (!(f == -1))
     {
-        /**NOTICE(NSLocalizedString(@"Another jailbreak Has Been Detected! Please remove the other jailbreak before using Tw3lve. We are going to reboot your device. We can restore your snapshot if you like.", nil), 1, 1);
+        NOTICE(NSLocalizedString(@"Another jailbreak Has Been Detected! Please remove the other jailbreak before using Tw3lve. We are going to reboot your device. We can restore your snapshot if you like.", nil), 1, 1);
         restoreRootFS();
-        //reboot(RB_QUICK);**/
+        //reboot(RB_QUICK);
         
     }
     
