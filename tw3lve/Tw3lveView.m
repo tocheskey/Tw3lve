@@ -224,6 +224,8 @@ void jelbrek()
         //Is LAST_Surprise installed?
         is_last_surprise_installed();
         
+        is_electra12_installed();
+        
         runOnMainQueueWithoutDeadlocking(^{
             logToUI(@"\n[*] No jailbreak is installed! Proceeding with the jailbreak.");
         });
