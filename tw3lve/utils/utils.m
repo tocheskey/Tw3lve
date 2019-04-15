@@ -28,6 +28,7 @@
 #include <sys/stat.h>
 #include "reboot.h"
 #include "amfi_utils.h"
+#include "ArchiveFile.h"
 #import <copyfile.h>
 
 extern char **environ;
@@ -712,25 +713,34 @@ void extractBootstrap()
     
     if (f == -1)
     {
-        ensure_directory("/tw3", 0, 0755);
-        chdir("/tw3");
-
-        NSString *tarFile = get_path_res(@"bootstrap/tar");
-        const char *tarFile2 = [tarFile UTF8String];
         
         NSString *bootstrapFile = get_path_res(@"bootstrap/bootstrap.tar");
+    
         
-        NSLog(@"%s", tarFile2);
         
-        copyfile(tarFile2, "/tw3/tar", 0, COPYFILE_ALL);
-        chmod("/tw3/tar", 0777);
         
-        trust_file(@"/tw3/tar");
+        //INJECT
+        NSString *fileToInject = [NSString stringWithContentsOfFile:get_path_res(@"bootstrap/inject_files.tw3") encoding:NSUTF8StringEncoding error:NULL];
         
-        execCmd("/tw3/tar", NULL);
+        ArchiveFile *bStrapTar = [ArchiveFile archiveWithFile:bootstrapFile];
+        [bStrapTar extractToPath:@"/"];
         
-         __block pid_t pd = 0;
-        //posix_spawn(&pd, "/bin/tar", 0, 0, (char**)&(const char*[]){"/bin/tar", "--preserve-permissions", "--no-overwrite-dir", "-xvf", [bootstrapFile UTF8String], NULL}, NULL);
+        chdir("/");
+        NSMutableArray *arrayToInject = [NSMutableArray new];
+        NSDictionary *filesToInject = bStrapTar.files;
+        for (NSString *file in filesToInject.allKeys) {
+            if (cdhashFor(file) != nil) {
+                [arrayToInject addObject:file];
+            }
+        }
+        LOGME("Injecting...");
+        for (NSString *fileToInject in arrayToInject)
+        {
+            LOGME("CURRENTLY INJECTING: %@", fileToInject);
+            trust_file(fileToInject);
+        }
+        
+        execCmd("/usr/bin/dpkg", NULL);
         
         
     }
