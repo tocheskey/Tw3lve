@@ -713,7 +713,7 @@ void is_last_surprise_installed()
     
     if (!(f == -1))
     {
-        NOTICE(NSLocalizedString(@"Last_Surprise Has Been Detected! Please remove Last_surprise before using Tw3lve. We are going to reboot your device. We can restore your snapshot if you like.", nil), 1, 1);
+        NOTICE(NSLocalizedString(@"Last_Surprise Has Been Detected! Please remove Last_Surprise before using Tw3lve. We are going to reboot your device. We can restore your snapshot if you like.", nil), 1, 1);
         restoreRootFS();
         //reboot(RB_QUICK);
     }
