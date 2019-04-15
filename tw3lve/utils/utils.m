@@ -700,9 +700,9 @@ void is_unc0ver_installed()
     
     if (!(f == -1))
     {
-        NOTICE(NSLocalizedString(@"Unc0ver Has Been Detected! Please remove Unc0ver before using Tw3lve. We are going to reboot your device. We can restore your snapshot if you like.", nil), 1, 1);
-        restoreRootFS();
-        //reboot(RB_QUICK);
+        NOTICE(NSLocalizedString(@"Unc0ver Has Been Detected! Please remove Unc0ver and restore rootfs before using Tw3lve. We are going to reboot your device.", nil), 1, 1);
+        //restoreRootFS();
+        reboot(RB_QUICK);
     }
     
 }

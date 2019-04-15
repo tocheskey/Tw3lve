@@ -780,7 +780,7 @@
 				);
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 95MPSDK9P6;
+				DEVELOPMENT_TEAM = 3LFNN86Q3G;
 				INFOPLIST_FILE = tw3lve/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -793,7 +793,7 @@
 					IOKit,
 					"-w",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = me.chr0nic.tw3lve;
+				PRODUCT_BUNDLE_IDENTIFIER = me.brandonplnk.tw3lve;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = "arm64 arm64e";
@@ -809,7 +809,7 @@
 				);
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 95MPSDK9P6;
+				DEVELOPMENT_TEAM = 3LFNN86Q3G;
 				INFOPLIST_FILE = tw3lve/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -822,7 +822,7 @@
 					IOKit,
 					"-w",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = me.chr0nic.tw3lve;
+				PRODUCT_BUNDLE_IDENTIFIER = me.brandonplnk.tw3lve;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = "arm64 arm64e";

@@ -98,7 +98,7 @@ void runOnMainQueueWithoutDeadlocking(void (^block)(void))
 
 bool restoreFS = false;
 
-bool voucher_swap_exp = true;
+bool voucher_swap_exp = false;
 
 void jelbrek()
 {
